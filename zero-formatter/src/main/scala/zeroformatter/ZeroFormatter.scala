@@ -1,19 +1,12 @@
 package zeroformatter
 
-import java.io.ByteArrayOutputStream
-
 object ZeroFormatter {
 
   def serialize[T](value: T)(implicit F: Formatter[T]): Array[Byte] = {
-    val out = new ByteArrayOutputStream()
-    try {
-      F.serialize(out, value)
-      out.toByteArray()
-    } finally {
-      out.close()
-    }
+    val bytes = Array.fill(F.length.getOrElse(0))(0.asInstanceOf[Byte])
+    F.serialize(bytes, 0, value)._1
   }
 
   def deserialize[T](bytes: Array[Byte])(implicit F: Formatter[T]): T =
-    F.deserialize(bytes, 0).value
+    F.deserialize(BinaryUtil.wrapByteArray(bytes), 0).value
 }

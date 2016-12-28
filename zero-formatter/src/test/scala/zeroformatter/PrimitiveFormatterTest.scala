@@ -3,17 +3,10 @@ package zeroformatter
 import Formatter._
 import dog._
 import dog.props._
-import scalaprops.{Param => PropParam, _}
-import scalaz._
+import scalaprops._
 import scalaz.std.anyVal._
-import scalaz.std.list._
 
-object FormatterTest extends Dog with Assert {
-
-  implicit val propParam = PropParam.withCurrentTimeSeed()
-
-  implicit def arrayEq[A](implicit A: Equal[A]): Equal[Array[A]] =
-    Equal.equalBy(_.toList)
+object PrimitiveFormatterTest extends Base {
 
   implicit val boolCase = Gen.elements((true, Array(1).map(_.toByte)), (false, Array(0).map(_.toByte)))
 

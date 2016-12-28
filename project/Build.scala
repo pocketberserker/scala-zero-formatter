@@ -42,8 +42,15 @@ object Build {
     name := zeroFormatterName,
     libraryDependencies ++= Seq(
       "org.spire-math" %%% "spire" % "0.13.0",
+      "com.chuusai" %%% "shapeless" % "2.3.2",
       "com.github.pocketberserker" %%% "dog" % dogVersion % "test",
       "com.github.pocketberserker" %%% "dog-props" % dogVersion % "test"
-    )
+    ),
+    libraryDependencies ++= {
+     if (scalaBinaryVersion.value startsWith "2.10")
+       Seq(compilerPlugin("org.scalamacros" % "paradise" % "2.1.0" cross CrossVersion.full))
+     else
+       Nil
+    }
   )
 }
