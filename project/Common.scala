@@ -4,7 +4,7 @@ import sbtrelease.ReleaseStateTransformations._
 import sbtrelease.ReleasePlugin.autoImport._
 import xerial.sbt.Sonatype._
 import com.typesafe.sbt.pgp.PgpKeys
-import scalaprops.ScalapropsPlugin.autoImport._
+import dog.DogPlugin.autoImport._
 
 object Common {
 
@@ -22,7 +22,7 @@ object Common {
 
   lazy val commonSettings = Seq(
     sonatypeSettings,
-    scalapropsCoreSettings
+    dogCoreSettings
   ).flatten ++ Seq(
     scalaVersion := scala211,
     crossScalaVersions := Seq("2.10.6", scala211, "2.12.1"),

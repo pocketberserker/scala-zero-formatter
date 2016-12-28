@@ -36,11 +36,14 @@ object Build {
       Some(shared(projectBase, conf))
   }
 
+  private[this] val dogVersion = "0.7.0"
+
   lazy val zeroFormatter = module("zero-formatter").settings(
     name := zeroFormatterName,
     libraryDependencies ++= Seq(
       "org.spire-math" %%% "spire" % "0.13.0",
-      "com.github.scalaprops" %%% "scalaprops" % "0.3.4" % "test"
+      "com.github.pocketberserker" %%% "dog" % dogVersion % "test",
+      "com.github.pocketberserker" %%% "dog-props" % dogVersion % "test"
     )
   )
 }
