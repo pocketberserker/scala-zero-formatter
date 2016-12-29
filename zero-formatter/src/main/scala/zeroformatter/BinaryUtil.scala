@@ -80,7 +80,7 @@ object BinaryUtil {
     val byteSize = 2
     val bs = ensureCapacity(bytes, offset, byteSize)
     val cs = allocate(byteSize).putChar(value).array()
-    for (i <- 0 to 1) bytes(offset + i) = cs(i)
+    for (i <- 0 to 1) bs(offset + i) = cs(i)
     bs
   }
 
