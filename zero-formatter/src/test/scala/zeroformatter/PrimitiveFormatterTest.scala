@@ -5,6 +5,7 @@ import dog._
 import dog.props._
 import scalaprops._
 import scalaz.std.anyVal._
+import scalaz.std.string._
 
 object PrimitiveFormatterTest extends Base {
 
@@ -121,5 +122,11 @@ object PrimitiveFormatterTest extends Base {
       values <- `serialize Char`
       _ <- assert.eq(values._1, ZeroFormatter.deserialize[Char](values._2)).lift
     } yield ()
+  }
+
+  val `serialize and deserialize String` = TestCase {
+    val value = "あいうえお"
+    val r = ZeroFormatter.serialize(value)
+    assert.eq(value, ZeroFormatter.deserialize[String](r))
   }
 }

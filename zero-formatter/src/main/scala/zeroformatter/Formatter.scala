@@ -86,6 +86,16 @@ object Formatter {
       DeserializeResult(buf.getChar(offset), 2)
   }
 
+  implicit val stringFormatter: Formatter[String] = new Formatter[String] {
+    override val length = None
+    override def serialize(bytes: Array[Byte], offset: Int, value: String) =
+      writeString(bytes, offset, value)
+    override def deserialize(buf: ByteBuffer, offset: Int) = {
+      val (value, size) = readString(buf, offset)
+      DeserializeResult(value, size)
+    }
+  }
+
   private[this] object flatten extends Poly1 {
     implicit def some[T] = at[Some[Index]]{
       case Some(index) => index.value

@@ -1,6 +1,7 @@
 package zeroformatter
 
 import java.nio.{ByteBuffer, ByteOrder}
+import java.nio.charset.StandardCharsets
 
 object BinaryUtil {
 
@@ -81,5 +82,31 @@ object BinaryUtil {
     val cs = allocate(byteSize).putChar(value).array()
     for (i <- 0 to 1) bytes(offset + i) = cs(i)
     bs
+  }
+
+  private[this] val intSize = 4
+
+  def writeString(bytes: Array[Byte], offset: Int, value: String): (Array[Byte], Int) =
+    if(value == null) {
+      (writeInt(bytes, offset, -1), intSize)
+    }
+    else {
+      val strBytes = value.getBytes(StandardCharsets.UTF_8)
+      val len = strBytes.length
+      val bs = writeInt(ensureCapacity(bytes, offset, intSize + len), offset, len)
+      for (i <- 0 to len - 1) bs(offset + intSize + i) = strBytes(i)
+      (bs, intSize + len)
+    }
+
+  def readString(buf: ByteBuffer, offset: Int): (String, Int) = {
+    val len = buf.getInt(offset)
+    if(len == -1) {
+      (null, intSize)
+    }
+    else {
+      val bytes = Array.fill(len)(0.asInstanceOf[Byte])
+      for(i <- 0 to len - 1) bytes(i) = buf.get(offset + intSize + i)
+      (new String(bytes, StandardCharsets.UTF_8), intSize + len)
+    }
   }
 }
