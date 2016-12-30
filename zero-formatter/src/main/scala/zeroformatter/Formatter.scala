@@ -108,6 +108,37 @@ object Formatter {
     }
   }
 
+  implicit def arrayFormatter[T: scala.reflect.ClassTag](implicit F: Formatter[T]): Formatter[Array[T]] = new Formatter[Array[T]] {
+    override val length = None
+
+    override def serialize(bytes: Array[Byte], offset: Int, value: Array[T]) =
+      if(value == null) {
+        intFormatter.serialize(bytes, offset, -1)
+      }
+      else {
+        val length = value.length
+        val bs = F.length.map(l => ensureCapacity(bytes, offset, 4 + l * length)).getOrElse(bytes)
+
+        val (result, byteSize) = value.foldLeft((bs, 4)){ case ((acc, size), v) =>
+          val (r, s) = F.serialize(acc, offset + size, v)
+          (r, size + s)
+        }
+
+        intFormatter.serialize(result, offset, length)
+        (result, byteSize)
+      }
+
+    override def deserialize(buf: ByteBuffer, offset: Int) = {
+      val length = intFormatter.deserialize(buf, offset).value
+      if(length == -1) DeserializeResult(null.asInstanceOf[Array[T]], 4)
+      else (0 to length - 1).foldLeft(DeserializeResult(new Array[T](length), 4)){ case (res, i) =>
+        val r = F.deserialize(buf, offset + res.byteSize)
+        res.value(i) = r.value
+        res.copy(byteSize = res.byteSize + r.byteSize)
+      }
+    }
+  }
+
   private[this] object flatten extends Poly1 {
     implicit def some[T] = at[Some[Index]]{
       case Some(index) => index.value

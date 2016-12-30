@@ -21,7 +21,7 @@ object BinaryUtil {
     else array
   }
 
-  private[this] def ensureCapacity(bytes: Array[Byte], offset: Int, appendLength: Int): Array[Byte] = {
+  private[zeroformatter] def ensureCapacity(bytes: Array[Byte], offset: Int, appendLength: Int): Array[Byte] = {
     val newLength = offset + appendLength
 
     val current = bytes.length
