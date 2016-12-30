@@ -1,5 +1,6 @@
 package zeroformatter
 
+import java.time.LocalDateTime
 import Formatter._
 import dog._
 import dog.props._
@@ -128,5 +129,11 @@ object PrimitiveFormatterTest extends Base {
     val value = "あいうえお"
     val r = ZeroFormatter.serialize(value)
     assert.eq(value, ZeroFormatter.deserialize[String](r))
+  }
+
+  val `serialize and deserialize LocalDateTime` = TestCase {
+    val value = LocalDateTime.now()
+    val r = ZeroFormatter.serialize(value)
+    assert.equal(value, ZeroFormatter.deserialize[LocalDateTime](r))
   }
 }

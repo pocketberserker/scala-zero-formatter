@@ -1,6 +1,7 @@
 package zeroformatter
 
 import java.nio.ByteBuffer
+import java.time.{LocalDateTime, ZoneOffset, Instant}
 import shapeless._
 import shapeless.ops.hlist._
 
@@ -93,6 +94,19 @@ object Formatter {
     override def deserialize(buf: ByteBuffer, offset: Int) = {
       val (value, size) = readString(buf, offset)
       DeserializeResult(value, size)
+    }
+  }
+
+  implicit val localDateTimeFormatter: Formatter[LocalDateTime] = new Formatter[LocalDateTime] {
+    override val length = Some(12)
+    override def serialize(bytes: Array[Byte], offset: Int, value: LocalDateTime) = {
+      val instant = value.toInstant(ZoneOffset.UTC)
+      (intFormatter.serialize(longFormatter.serialize(bytes, offset, instant.getEpochSecond)._1, offset + 8, instant.getNano)._1, 12)
+    }
+    override def deserialize(buf: ByteBuffer, offset: Int) = {
+      val second = longFormatter.deserialize(buf, offset).value
+      val nano = intFormatter.deserialize(buf, offset + 8).value
+      DeserializeResult(Instant.ofEpochSecond(second, nano).atOffset(ZoneOffset.UTC).toLocalDateTime, 12)
     }
   }
 
