@@ -148,4 +148,10 @@ object PrimitiveFormatterTest extends Base {
     val r = ZeroFormatter.serialize(value)
     assert.equal(value, ZeroFormatter.deserialize[ZonedDateTime](r))
   }
+
+  val `serialize and deserialize Duration` = TestCase {
+    val value = Duration.between(LocalDateTime.MIN, LocalDateTime.now())
+    val r = ZeroFormatter.serialize(value)
+    assert.equal(value, ZeroFormatter.deserialize[Duration](r))
+  }
 }

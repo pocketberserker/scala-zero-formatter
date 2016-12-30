@@ -142,6 +142,17 @@ object Formatter {
     }
   }
 
+  implicit val durationFormatter: Formatter[Duration] = new Formatter[Duration] {
+    override val length = Some(12)
+    override def serialize(bytes: Array[Byte], offset: Int, value: Duration) =
+      (intFormatter.serialize(longFormatter.serialize(bytes, offset, value.getSeconds)._1, offset + 8, value.getNano)._1, 12)
+    override def deserialize(buf: ByteBuffer, offset: Int) = {
+      val second = longFormatter.deserialize(buf, offset).value
+      val nano = intFormatter.deserialize(buf, offset + 8).value
+      DeserializeResult(Duration.ofSeconds(second, nano), 12)
+    }
+  }
+
   private[this] object flatten extends Poly1 {
     implicit def some[T] = at[Some[Index]]{
       case Some(index) => index.value
