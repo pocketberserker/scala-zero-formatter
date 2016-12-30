@@ -52,5 +52,7 @@ object Build {
      else
        Nil
     }
+  ).jsSettings(
+    libraryDependencies += "org.scala-js" %%% "scalajs-java-time" % "0.2.0"
   )
 }
