@@ -1,0 +1,23 @@
+language: scala
+
+sudo: false
+
+scala:
+   - 2.10.6
+   - 2.11.8
+   - 2.12.1
+
+jdk:
+  - oraclejdk8
+
+script:
+  - sbt ++${TRAVIS_SCALA_VERSION} "project $TEST_PROJECT" compile test:compile test
+
+env:
+  matrix:
+  - TEST_PROJECT="zero-formatterJVM"
+  - TEST_PROJECT="zero-formatterJS"
+
+cache:
+  directories:
+    - $HOME/.ivy2/cache
