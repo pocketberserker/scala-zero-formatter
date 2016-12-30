@@ -1,6 +1,6 @@
 package zeroformatter
 
-import java.time.LocalDateTime
+import java.time._
 import Formatter._
 import dog._
 import dog.props._
@@ -135,5 +135,17 @@ object PrimitiveFormatterTest extends Base {
     val value = LocalDateTime.now()
     val r = ZeroFormatter.serialize(value)
     assert.equal(value, ZeroFormatter.deserialize[LocalDateTime](r))
+  }
+
+  val `serialize and deserialize OffsetDateTime` = TestCase {
+    val value = OffsetDateTime.now()
+    val r = ZeroFormatter.serialize(value)
+    assert.equal(value, ZeroFormatter.deserialize[OffsetDateTime](r))
+  }
+
+  val `serialize and deserialize ZonedDateTime` = TestCase {
+    val value = OffsetDateTime.now().toZonedDateTime
+    val r = ZeroFormatter.serialize(value)
+    assert.equal(value, ZeroFormatter.deserialize[ZonedDateTime](r))
   }
 }
