@@ -91,5 +91,17 @@ object Common {
     }
   ) ++ Seq(Compile, Test).flatMap(c =>
     scalacOptions in (c, console) ~= {_.filterNot(unusedWarnings.toSet)}
-  )
+  ) ++ crossVersionSharedSources
+
+  lazy val crossVersionSharedSources: Seq[Setting[_]] =
+    Seq(Compile, Test).map { sc =>
+      (unmanagedSourceDirectories in sc) ++= {
+        (unmanagedSourceDirectories in sc ).value.map { dir: File =>
+          CrossVersion.partialVersion(scalaVersion.value) match {
+            case Some((2, y)) if y == 10 => new File(dir.getPath + "_2.10")
+            case Some((2, y)) if y >= 11 => new File(dir.getPath + "_2.11+")
+          }
+        }
+      }
+    }
 }

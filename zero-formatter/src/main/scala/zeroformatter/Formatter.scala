@@ -50,17 +50,17 @@ object Formatter extends FormatterInstances {
       }
   }
 
-  private[this] object zero extends Poly0 {
+  private[zeroformatter] object zero extends Poly0 {
     implicit def zero[T] = at[T](null.asInstanceOf[T])
   }
 
-  private[this] object genFormatter extends Poly2 {
+  private[this] object genObjectFormatter extends Poly2 {
     implicit def gen[T, U <: HList](implicit F: Formatter[T]) =
       at[T, U]((_, acc) => F :: acc)
   }
 
   private[this] object readObject extends Poly2 {
-    implicit def caseIndex[T, U <: HList] =
+    implicit def read[T, U <: HList] =
       at[(Formatter[T], Int), (ByteBuffer, Int, U)] {
         case ((formatter, index), (buf, offset, acc)) =>
           val o = intFormatter.deserialize(buf, offset + 4 + 4 + 4 * index).value
@@ -83,7 +83,7 @@ object Formatter extends FormatterInstances {
     write: LeftFolder.Aux[G, (Array[Byte], Int, Int), writeObject.type, (Array[Byte], Int, Int)],
     // deserialize
     init: FillWith[zero.type, B],
-    generator: RightFolder.Aux[B, HNil, genFormatter.type, H],
+    generator: RightFolder.Aux[B, HNil, genObjectFormatter.type, H],
     formatterZipper : Zip.Aux[H :: F :: HNil, I],
     read: RightFolder.Aux[I, (ByteBuffer, Int, HNil), readObject.type, (ByteBuffer, Int, B)]
     ): Formatter[A] = {
@@ -92,7 +92,7 @@ object Formatter extends FormatterInstances {
     val lastIndexOpt = indexes.toList.reduceOption(_ max _)
     val formattersWithIndex =
       HList.fillWith[B](zero)
-        .foldRight(HNil: HNil)(genFormatter)
+        .foldRight(HNil: HNil)(genObjectFormatter)
         .zip(indexes)
 
     new Formatter[A] {

@@ -73,4 +73,4 @@ see also [WireFormat Specification](https://github.com/neuecc/ZeroFormatter/tree
 
 | Scala | C# | Note |
 | ---- | ---- | --- |
-| | Union | |
+| `Union` | Union | >= Scala 2.11 |
