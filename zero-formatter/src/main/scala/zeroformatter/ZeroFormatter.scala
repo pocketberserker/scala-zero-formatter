@@ -3,7 +3,7 @@ package zeroformatter
 object ZeroFormatter {
 
   def serialize[T](value: T)(implicit F: Formatter[T]): Array[Byte] = {
-    val bytes = Array.fill(F.length.getOrElse(0))(0.asInstanceOf[Byte])
+    val bytes = new Array[Byte](F.length.getOrElse(0))
     val (rs, size) = F.serialize(bytes, 0, value)
     if(rs.length != size) BinaryUtil.resize(rs, size) else rs
   }
