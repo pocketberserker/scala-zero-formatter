@@ -11,7 +11,7 @@ object BinaryUtil {
   private[this] def allocate(capacity: Int): ByteBuffer =
     ByteBuffer.allocate(capacity).order(ByteOrder.LITTLE_ENDIAN)
 
-  private[this] def resize(array: Array[Byte], newSize: Int): Array[Byte] = {
+  private[zeroformatter] def resize(array: Array[Byte], newSize: Int): Array[Byte] = {
     if(array.length != newSize) {
       val array2 = Array.fill(newSize)(0.asInstanceOf[Byte])
       val l = array.length

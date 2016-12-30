@@ -167,7 +167,7 @@ object Formatter {
           case None => intFormatter.serialize(bytes, offset, -1)
           case Some(lastIndex) =>
             val values = gen.to(value).zip(indexes)
-            val bs = writeInt(bytes, offset + 1, lastIndex)
+            val bs = writeInt(bytes, offset + 4, lastIndex)
             // [byteSize:int(4)] + [lastIndex:int(4)] + [indexOffset...:int(4 * lastIndex)]
             val initbyteSize = 4 + 4 + ((lastIndex + 1) * 4)
             val (result, _, byteSize) = values.foldLeft((bs, offset, initbyteSize))(writeObject)
