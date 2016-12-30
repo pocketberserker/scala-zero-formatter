@@ -7,6 +7,7 @@ import dog.props._
 import scalaprops._
 import scalaz.std.anyVal._
 import scalaz.std.string._
+import scalaz.std.option._
 
 object PrimitiveFormatterTest extends Base {
 
@@ -32,6 +33,21 @@ object PrimitiveFormatterTest extends Base {
     for {
       values <- `serialize Byte`
       _ <- assert.eq(values._1, ZeroFormatter.deserialize[Byte](values._2)).lift
+    } yield ()
+  }
+
+  val `serialize Option[Byte]` = TestCase {
+    val value: Option[Byte] = Some(123.toByte)
+    val bytes = Array(0x01.toByte, 0x7b.toByte)
+    for {
+      _ <- assert.eq(bytes, ZeroFormatter.serialize(value)).lift
+    } yield (value, bytes)
+  }
+
+  val `deserialize Option[Byte]` = TestCase {
+    for {
+      values <- `serialize Option[Byte]`
+      _ <- assert.eq(values._1, ZeroFormatter.deserialize[Option[Byte]](values._2)).lift
     } yield ()
   }
 
@@ -129,6 +145,12 @@ object PrimitiveFormatterTest extends Base {
     val value = "あいうえお"
     val r = ZeroFormatter.serialize(value)
     assert.eq(value, ZeroFormatter.deserialize[String](r))
+  }
+
+  val `serialize and deserialize Option[String]` = TestCase {
+    val value: Option[String] = Some("あいうえお")
+    val r = ZeroFormatter.serialize(value)
+    assert.eq(value, ZeroFormatter.deserialize[Option[String]](r))
   }
 
   val `serialize and deserialize Duration` = TestCase {

@@ -50,4 +50,8 @@ object TimeFormatterInstances {
       DeserializeResult(deserializeOffsetDateTime(buf, offset).toZonedDateTime, 14)
     }
   }
+
+  implicit val localDateTimeOptionFormatter: Formatter[Option[LocalDateTime]] = nullableFormatter[LocalDateTime]
+  implicit val offsetDateTimeOptionFormatter: Formatter[Option[OffsetDateTime]] = nullableFormatter[OffsetDateTime]
+  implicit val zonedDateTimeOptionFormatter: Formatter[Option[ZonedDateTime]] = nullableFormatter[ZonedDateTime]
 }

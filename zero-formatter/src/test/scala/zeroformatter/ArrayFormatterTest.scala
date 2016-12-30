@@ -5,6 +5,7 @@ import dog._
 import scalaz.Equal
 import scalaz.std.anyVal._
 import scalaz.std.string._
+import scalaz.std.option._
 
 object ArrayFormatterTest extends Base {
 
@@ -59,7 +60,6 @@ object ArrayFormatterTest extends Base {
         0x06, 0x00, 0x00, 0x00, 0x35, 0x36, 0x37, 0x38, 0x39, 0x30,
         0x05, 0x00
       ).map(_.toByte)
-    println(ZeroFormatter.serialize(value).map(b => new scala.runtime.RichInt(b).toHexString).toList)
     for {
       _ <- assert.eq(bytes, ZeroFormatter.serialize(value)).lift
     } yield (value, bytes)
@@ -74,6 +74,39 @@ object ArrayFormatterTest extends Base {
     for {
       values <- `serialize Array[TestElement]`
       _ <- assert.eq(values._1, ZeroFormatter.deserialize[Array[TestElement]](values._2)).lift
+    } yield ()
+  }
+
+  val `serialize and deserialize Option[Array[Int]]` = TestCase {
+    for {
+      values <- `serialize Array[Int]`
+      value = Some(values._1): Option[Array[Int]]
+      bytes = values._2
+      actualBytes = ZeroFormatter.serialize(value)
+      _ <- assert.eq(bytes, actualBytes).lift
+      _ <- assert.eq(value, ZeroFormatter.deserialize[Option[Array[Int]]](actualBytes)).lift
+    } yield ()
+  }
+
+  val `serialize and deserialize "None: Option[Array[Int]]"` = TestCase {
+    val value: Option[Array[Int]] = None
+    val bytes =
+      Array(
+        0xFF, 0xFF, 0xFF, 0xFF
+      ).map(_.toByte)
+    for {
+      _ <- assert.eq(bytes, ZeroFormatter.serialize(value)).lift
+    } yield (value, bytes)
+  }
+
+  val `serialize and deserialize Option[Array[TestElement]]` = TestCase {
+    for {
+      values <- `serialize Array[TestElement]`
+      value = Some(values._1): Option[Array[TestElement]]
+      bytes = values._2
+      actualBytes = ZeroFormatter.serialize(value)
+      _ <- assert.eq(bytes, actualBytes).lift
+      _ <- assert.eq(value, ZeroFormatter.deserialize[Option[Array[TestElement]]](actualBytes)).lift
     } yield ()
   }
 }

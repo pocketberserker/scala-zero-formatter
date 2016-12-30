@@ -4,6 +4,7 @@ import java.nio.ByteBuffer
 import java.time._
 import shapeless._
 import shapeless.ops.hlist._
+import BinaryUtil._
 
 trait ZeroFormattable {
 
@@ -19,9 +20,9 @@ abstract class Formatter[T] extends ZeroFormattable {
   def deserialize(buf: ByteBuffer, offset: Int): DeserializeResult[T]
 }
 
-object Formatter {
+object Formatter extends FormatterInstances
 
-  import BinaryUtil._
+abstract class FormatterInstances1 {
 
   implicit val boolFormatter: Formatter[Boolean] = new Formatter[Boolean] {
     override val length = Some(1)
@@ -225,4 +226,59 @@ object Formatter {
       }
     }
   }
+}
+
+abstract class FormatterInstances0 extends FormatterInstances1 {
+
+  implicit def optionFormatter[T](implicit F: Formatter[T]): Formatter[Option[T]] = new Formatter[Option[T]] {
+    override val length = F.length
+
+    override def serialize(bytes: Array[Byte], offset: Int, value: Option[T]) = value match {
+      case Some(v) => F.serialize(bytes, offset, v)
+      case None => intFormatter.serialize(bytes, offset, -1)
+    }
+
+    override def deserialize(buf: ByteBuffer, offset: Int) = {
+      val r = intFormatter.deserialize(buf, offset)
+      if(r.value == -1) DeserializeResult(None, r.byteSize)
+      else {
+        val result = F.deserialize(buf, offset)
+        DeserializeResult(Some(result.value), result.byteSize)
+      }
+    }
+  }
+}
+
+abstract class FormatterInstances extends FormatterInstances0 {
+
+  def nullableFormatter[T](implicit F: Formatter[T]): Formatter[Option[T]] = new Formatter[Option[T]] {
+    override val length = F.length.map(_ + 1)
+
+    override def serialize(bytes: Array[Byte], offset: Int, value: Option[T]) = value match {
+      case Some(v) =>
+        val bs = F.length.map(l => ensureCapacity(bytes, offset, l)).getOrElse(bytes)
+        val (result, s) = F.serialize(boolFormatter.serialize(bs, offset, true)._1, offset + 1, v)
+        (result, s + 1)
+      case None => boolFormatter.serialize(bytes, offset, false)
+    }
+
+    override def deserialize(buf: ByteBuffer, offset: Int) = {
+      val r = boolFormatter.deserialize(buf, offset)
+      if(r.value) {
+        val result = F.deserialize(buf, offset + 1)
+        DeserializeResult(Some(result.value), r.byteSize + result.byteSize)
+      }
+      else DeserializeResult(None, r.byteSize)
+    }
+  }
+
+  implicit val boolOptionFormatter: Formatter[Option[Boolean]] = nullableFormatter[Boolean]
+  implicit val byteOptionFormatter: Formatter[Option[Byte]] = nullableFormatter[Byte]
+  implicit val shortOptionFormatter: Formatter[Option[Short]] = nullableFormatter[Short]
+  implicit val intOptionFormatter: Formatter[Option[Int]] = nullableFormatter[Int]
+  implicit val longOptionFormatter: Formatter[Option[Long]] = nullableFormatter[Long]
+  implicit val floatOptionFormatter: Formatter[Option[Float]] = nullableFormatter[Float]
+  implicit val doubleOptionFormatter: Formatter[Option[Double]] = nullableFormatter[Double]
+  implicit val charOptionFormatter: Formatter[Option[Char]] = nullableFormatter[Char]
+  implicit val durationOptionFormatter: Formatter[Option[Duration]] = nullableFormatter[Duration]
 }
