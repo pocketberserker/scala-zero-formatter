@@ -13,7 +13,7 @@ object BinaryUtil {
 
   private[zeroformatter] def resize(array: Array[Byte], newSize: Int): Array[Byte] = {
     if(array.length != newSize) {
-      val array2 = Array.fill(newSize)(0.asInstanceOf[Byte])
+      val array2 = new Array[Byte](newSize)
       val l = array.length
       array.copyToArray(array2, 0, if(l > newSize) newSize else l)
       array2
@@ -104,7 +104,7 @@ object BinaryUtil {
       (null, intSize)
     }
     else {
-      val bytes = Array.fill(len)(0.asInstanceOf[Byte])
+      val bytes = new Array[Byte](len)
       for(i <- 0 to len - 1) bytes(i) = buf.get(offset + intSize + i)
       (new String(bytes, StandardCharsets.UTF_8), intSize + len)
     }
