@@ -26,7 +26,8 @@ see also [WireFormat Specifation](https://github.com/neuecc/ZeroFormatter/tree/1
 | `Char` | ← | |
 | `Duration` | `TimeSpan` | |
 | `LocalDateTime` | `DateTime` | JVM only. |
-| `OffsetDateTime`, `ZonedDateTime` | `DateTimeOffset` | JVM only. `ZonedDateTime` can not deserialize Zone ID. |
+| `OffsetDateTime` | `DateTimeOffset` | JVM only. |
+| `ZonedDateTime` | `DateTimeOffset` | JVM only. `ZonedDateTime` can not deserialize Zone ID. |
 | `String` | ← | |
 | `Option[Short]` | `Int16?` | |
 | `Option[Int]` | `Int32?`| |
@@ -41,7 +42,8 @@ see also [WireFormat Specifation](https://github.com/neuecc/ZeroFormatter/tree/1
 | `Option[Byte]` | `SByte?` | |
 | `Option[Duration]` | `TimeSpan?` | |
 | `Option[LocalDateTime]` | `DateTime?` | JVM only. |
-| `Option[OffsetDateTime]`, `Option[ZonedDateTime]` | `DateTimeOffset?` | JVM only. `ZonedDateTime` can not deserialize Zone ID. |
+| `Option[OffsetDateTime]` | `DateTimeOffset?` | JVM only. |
+| `Option[ZonedDateTime]` | `DateTimeOffset?` | JVM only. `ZonedDateTime` can not deserialize Zone ID. |
 | `Option[String]` | `String?` | |
 
 ### Sequence Format
