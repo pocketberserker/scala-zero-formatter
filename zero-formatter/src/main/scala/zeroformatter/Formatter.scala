@@ -2,6 +2,7 @@ package zeroformatter
 
 import java.nio.ByteBuffer
 import java.time._
+import spire.math.{UByte, UShort, UInt, ULong}
 import shapeless._
 import shapeless.ops.hlist._
 import BinaryUtil._
@@ -13,11 +14,21 @@ trait ZeroFormattable {
 
 case class DeserializeResult[T](value: T, byteSize: Int)
 
-abstract class Formatter[T] extends ZeroFormattable {
+abstract class Formatter[T] extends ZeroFormattable { self =>
 
   def serialize(bytes: Array[Byte], offset: Int, value: T): (Array[Byte], Int)
 
   def deserialize(buf: ByteBuffer, offset: Int): DeserializeResult[T]
+
+  def xmap[U](f: T => U, g: U => T): Formatter[U] = new Formatter[U] {
+    override def length = self.length
+    override def serialize(bytes: Array[Byte], offset: Int, value: U) =
+      self.serialize(bytes, offset, g(value))
+    override def deserialize(buf: ByteBuffer, offset: Int) = {
+      val r = self.deserialize(buf, offset)
+      DeserializeResult(f(r.value), r.byteSize)
+    }
+  }
 }
 
 object Formatter extends FormatterInstances {
@@ -152,6 +163,11 @@ abstract class FormatterInstances1 {
       DeserializeResult(buf.getLong(offset), 8)
   }
 
+  implicit val ubyteFormatter: Formatter[UByte] = byteFormatter.xmap(b => UByte(b), _.toByte)
+  implicit val ushortFormatter: Formatter[UShort] = shortFormatter.xmap(s => UShort(s), _.toShort)
+  implicit val uintFormatter: Formatter[UInt] = intFormatter.xmap(i => UInt(i), _.toInt)
+  implicit val ulongFormatter: Formatter[ULong] = longFormatter.xmap(l => ULong(l), _.toLong)
+
   implicit val floatFormatter: Formatter[Float] = new Formatter[Float] {
     override val length = Some(4)
     override def serialize(bytes: Array[Byte], offset: Int, value: Float) =
@@ -278,6 +294,10 @@ abstract class FormatterInstances extends FormatterInstances0 {
   implicit val shortOptionFormatter: Formatter[Option[Short]] = nullableFormatter[Short]
   implicit val intOptionFormatter: Formatter[Option[Int]] = nullableFormatter[Int]
   implicit val longOptionFormatter: Formatter[Option[Long]] = nullableFormatter[Long]
+  implicit val ubyteOptionFormatter: Formatter[Option[UByte]] = nullableFormatter[UByte]
+  implicit val ushortOptionFormatter: Formatter[Option[UShort]] = nullableFormatter[UShort]
+  implicit val uintOptionFormatter: Formatter[Option[UInt]] = nullableFormatter[UInt]
+  implicit val ulongOptionFormatter: Formatter[Option[ULong]] = nullableFormatter[ULong]
   implicit val floatOptionFormatter: Formatter[Option[Float]] = nullableFormatter[Float]
   implicit val doubleOptionFormatter: Formatter[Option[Double]] = nullableFormatter[Double]
   implicit val charOptionFormatter: Formatter[Option[Char]] = nullableFormatter[Char]

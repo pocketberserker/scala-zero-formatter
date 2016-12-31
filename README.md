@@ -15,13 +15,13 @@ see also [WireFormat Specifation](https://github.com/neuecc/ZeroFormatter/tree/1
 | `Short` | `Int16` | |
 | `Int` | `Int32`| |
 | `Long` | `Int64` | |
-| | `UInt16` | |
-| | `UInt32` | |
-| | `UInt64` | |
+| `spire.math.UShort` | `UInt16` | |
+| `spire.math.UInt` | `UInt32` | |
+| `spire.math.ULong` | `UInt64` | |
 | `Float` | `Single` | |
 | `Double` | ← | |
 | `Boolean` | ← | |
-| | `Byte` | |
+| `spire.math.UByte` | `Byte` | |
 | `Byte` | `SByte` | |
 | `Char` | ← | |
 | `Duration` | `TimeSpan` | |
@@ -32,13 +32,13 @@ see also [WireFormat Specifation](https://github.com/neuecc/ZeroFormatter/tree/1
 | `Option[Short]` | `Int16?` | |
 | `Option[Int]` | `Int32?`| |
 | `Option[Long]` | `Int64`? | |
-| | `UInt16`? | |
-| | `UInt32`? | |
-| | `UInt64`? | |
+| `Option[spire.math.UShort]` | `UInt16`? | |
+| `Option[spire.math.UInt]` | `UInt32`? | |
+| `Option[spire.math.ULong]` | `UInt64`? | |
 | `Option[Float]` | `Single?` | |
 | `Option[Double]` | `Double?` | |
 | `Option[Boolean]` | `Boolean?` | |
-| | `Byte?` | |
+| `Option[spire.math.UByte]` | `Byte?` | |
 | `Option[Byte]` | `SByte?` | |
 | `Option[Duration]` | `TimeSpan?` | |
 | `Option[LocalDateTime]` | `DateTime?` | JVM only. |
