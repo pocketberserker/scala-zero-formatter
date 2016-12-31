@@ -85,6 +85,7 @@ object UnionFormatter {
 
       override def deserialize(buf: ByteBuffer, offset: Int) = {
         val byteSize = intFormatter.deserialize(buf, offset).value
+        if(byteSize == -1) DeserializeResult(null.asInstanceOf[A], byteSize)
         val result = fs.foldLeft(ReadUnionResult(buf, offset + 4, None: Option[A]))(readUnion)
         DeserializeResult(result.value.getOrElse(null.asInstanceOf[A]), byteSize)
       }

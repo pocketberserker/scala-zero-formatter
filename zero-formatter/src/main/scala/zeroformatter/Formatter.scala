@@ -114,6 +114,7 @@ object Formatter extends FormatterInstances {
 
       override def deserialize(buf: ByteBuffer, offset: Int) = {
         val byteSize = intFormatter.deserialize(buf, offset).value
+        if(byteSize == -1) DeserializeResult(null.asInstanceOf[A], byteSize)
         val (_, _, vs) = formattersWithIndex.foldRight((buf, offset, HNil: HNil))(readObject)
         DeserializeResult(gen.from(vs), byteSize)
       }
