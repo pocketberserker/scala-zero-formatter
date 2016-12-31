@@ -53,6 +53,6 @@ object Build {
        Nil
     }
   ).jsSettings(
-    libraryDependencies += "org.scala-js" %%% "scalajs-java-time" % "0.2.0"
+    libraryDependencies += "io.github.cquiroz" %%% "scala-java-time" % "2.0.0-M6"
   )
 }
