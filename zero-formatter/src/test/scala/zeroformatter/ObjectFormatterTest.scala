@@ -38,4 +38,18 @@ object ObjectFormatterTest extends Base {
       _ <- assert.equal(values._1, ZeroFormatter.deserialize[MyClass](values._2)).lift
     } yield ()
   }
+
+  case class MyClassV2(
+    @Index(0) age: Int,
+    @Index(1) firstName: String,
+    @Index(2) laftName: String,
+    @Index(3) added: Int
+  )
+
+  val `deserialize Object with blank` = TestCase {
+    for {
+      values <- `serialize Object`
+      _ <- assert.equal(MyClassV2(99, "hoge", "fuga", 0), ZeroFormatter.deserialize[MyClassV2](values._2)).lift
+    } yield ()
+  }
 }

@@ -1,0 +1,3 @@
+package zeroformatter
+
+class NoIndexException extends RuntimeException

@@ -59,12 +59,20 @@ object Formatter extends FormatterInstances {
       at[T, U]((_, acc) => F :: acc)
   }
 
+  private[this] case class ReadObjectResult[T <: HList](buf: ByteBuffer, offset: Int, lastIndex: Int, value: T)
+
   private[this] object readObject extends Poly2 {
     implicit def read[T, U <: HList] =
-      at[(Formatter[T], Int), (ByteBuffer, Int, U)] {
-        case ((formatter, index), (buf, offset, acc)) =>
-          val o = intFormatter.deserialize(buf, offset + 4 + 4 + 4 * index).value
-          (buf, offset, formatter.deserialize(buf, o).value :: acc)
+      at[(Formatter[T], Int), ReadObjectResult[U]] {
+        case ((formatter, index), acc) =>
+          val v =
+            if(index > acc.lastIndex) null.asInstanceOf[T]
+            else {
+              val o = intFormatter.deserialize(acc.buf, acc.offset + 4 + 4 + 4 * index).value
+              if(o == 0) null.asInstanceOf[T]
+              else formatter.deserialize(acc.buf, o).value
+            }
+          acc.copy(value = v :: acc.value)
       }
   }
 
@@ -85,11 +93,11 @@ object Formatter extends FormatterInstances {
     init: FillWith[zero.type, B],
     generator: RightFolder.Aux[B, HNil, genObjectFormatter.type, H],
     formatterZipper : Zip.Aux[H :: F :: HNil, I],
-    read: RightFolder.Aux[I, (ByteBuffer, Int, HNil), readObject.type, (ByteBuffer, Int, B)]
+    read: RightFolder.Aux[I, ReadObjectResult[HNil], readObject.type, ReadObjectResult[B]]
     ): Formatter[A] = {
 
     val indexes = Annotations[Index, A].apply().filterNot[None.type].map(flatten)
-    val lastIndexOpt = indexes.toList.reduceOption(_ max _)
+    val lastIndex = indexes.toList.reduceOption(_ max _).getOrElse(throw new NoIndexException)
     val formattersWithIndex =
       HList.fillWith[B](zero)
         .foldRight(HNil: HNil)(genObjectFormatter)
@@ -100,23 +108,20 @@ object Formatter extends FormatterInstances {
       override val length = None
 
       override def serialize(bytes: Array[Byte], offset: Int, value: A) = {
-        lastIndexOpt match {
-          case None => intFormatter.serialize(bytes, offset, -1)
-          case Some(lastIndex) =>
-            val values = gen.to(value).zip(indexes)
-            val bs = writeInt(bytes, offset + 4, lastIndex)
-            // [byteSize:int(4)] + [lastIndex:int(4)] + [indexOffset...:int(4 * lastIndex)]
-            val initbyteSize = 4 + 4 + ((lastIndex + 1) * 4)
-            val (result, _, byteSize) = values.foldLeft((bs, offset, initbyteSize))(writeObject)
-            FormatResult(writeInt(result, offset, byteSize), byteSize)
-        }
+        val values = gen.to(value).zip(indexes)
+        val bs = writeInt(bytes, offset + 4, lastIndex)
+        // [byteSize:int(4)] + [lastIndex:int(4)] + [indexOffset...:int(4 * lastIndex)]
+        val initbyteSize = 4 + 4 + ((lastIndex + 1) * 4)
+        val (result, _, byteSize) = values.foldLeft((bs, offset, initbyteSize))(writeObject)
+        FormatResult(writeInt(result, offset, byteSize), byteSize)
       }
 
       override def deserialize(buf: ByteBuffer, offset: Int) = {
         val byteSize = intFormatter.deserialize(buf, offset).value
         if(byteSize == -1) FormatResult(null.asInstanceOf[A], byteSize)
-        val (_, _, vs) = formattersWithIndex.foldRight((buf, offset, HNil: HNil))(readObject)
-        FormatResult(gen.from(vs), byteSize)
+        val li = intFormatter.deserialize(buf, offset + 4).value
+        val result = formattersWithIndex.foldRight(ReadObjectResult(buf, offset, li, HNil: HNil))(readObject)
+        FormatResult(gen.from(result.value), byteSize)
       }
     }
   }
