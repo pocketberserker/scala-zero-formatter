@@ -6,7 +6,7 @@ implementation of [ZeroFormatter](https://github.com/neuecc/ZeroFormatter) in Sc
 
 ## Supported types (Stage1 only)
 
-see also [WireFormat Specifation](https://github.com/neuecc/ZeroFormatter/tree/1.5.7#wireformat-specification).
+see also [WireFormat Specification](https://github.com/neuecc/ZeroFormatter/tree/1.5.7#wireformat-specification).
 
 ### Primitive Format
 
