@@ -86,27 +86,27 @@ object BinaryUtil {
 
   private[this] val intSize = 4
 
-  def writeString(bytes: Array[Byte], offset: Int, value: String): (Array[Byte], Int) =
+  def writeString(bytes: Array[Byte], offset: Int, value: String): FormatResult[Array[Byte]] =
     if(value == null) {
-      (writeInt(bytes, offset, -1), intSize)
+      FormatResult(writeInt(bytes, offset, -1), intSize)
     }
     else {
       val strBytes = value.getBytes(StandardCharsets.UTF_8)
       val len = strBytes.length
       val bs = writeInt(ensureCapacity(bytes, offset, intSize + len), offset, len)
       for (i <- 0 to len - 1) bs(offset + intSize + i) = strBytes(i)
-      (bs, intSize + len)
+      FormatResult(bs, intSize + len)
     }
 
-  def readString(buf: ByteBuffer, offset: Int): (String, Int) = {
+  def readString(buf: ByteBuffer, offset: Int): FormatResult[String] = {
     val len = buf.getInt(offset)
     if(len == -1) {
-      (null, intSize)
+      FormatResult(null.asInstanceOf[String], intSize)
     }
     else {
       val bytes = new Array[Byte](len)
       for(i <- 0 to len - 1) bytes(i) = buf.get(offset + intSize + i)
-      (new String(bytes, StandardCharsets.UTF_8), intSize + len)
+      FormatResult(new String(bytes, StandardCharsets.UTF_8), intSize + len)
     }
   }
 }

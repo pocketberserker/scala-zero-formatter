@@ -12,9 +12,9 @@ object UnionFormatter {
     implicit def default[T <: Union[_]](implicit F: Formatter[T]) =
       at[(Array[Byte], Int, Int), T] {
         case ((bytes, offset, byteSize), value) =>
-          val (bs, keyByteSize) = value.serializeKey(bytes, offset)
-          val (result, size) = F.serialize(bs, offset + keyByteSize, value)
-          (result, offset + keyByteSize + size, byteSize + keyByteSize + size)
+          val v = value.serializeKey(bytes, offset)
+          val result = F.serialize(v.value, offset + v.byteSize, value)
+          (result.value, offset + v.byteSize + result.byteSize, byteSize + v.byteSize + result.byteSize)
       }
   }
 
@@ -80,14 +80,14 @@ object UnionFormatter {
       override def serialize(bytes: Array[Byte], offset: Int, value: A) = {
         val values = gen.to(value)
         val (result, _, byteSize) = values.foldLeft((bytes, offset + 4, 4))(writeUnion)
-        (writeInt(result, offset, byteSize), byteSize)
+        FormatResult(writeInt(result, offset, byteSize), byteSize)
       }
 
       override def deserialize(buf: ByteBuffer, offset: Int) = {
         val byteSize = intFormatter.deserialize(buf, offset).value
-        if(byteSize == -1) DeserializeResult(null.asInstanceOf[A], byteSize)
+        if(byteSize == -1) FormatResult(null.asInstanceOf[A], byteSize)
         val result = fs.foldLeft(ReadUnionResult(buf, offset + 4, None: Option[A]))(readUnion)
-        DeserializeResult(result.value.getOrElse(null.asInstanceOf[A]), byteSize)
+        FormatResult(result.value.getOrElse(null.asInstanceOf[A]), byteSize)
       }
     }
   }

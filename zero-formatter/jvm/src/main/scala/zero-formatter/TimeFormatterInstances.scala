@@ -10,20 +10,23 @@ object TimeFormatterInstances {
     override val length = Some(12)
     override def serialize(bytes: Array[Byte], offset: Int, value: LocalDateTime) = {
       val instant = value.toInstant(ZoneOffset.UTC)
-      (intFormatter.serialize(longFormatter.serialize(bytes, offset, instant.getEpochSecond)._1, offset + 8, instant.getNano)._1, 12)
+      FormatResult(
+        intFormatter.serialize(longFormatter.serialize(bytes, offset, instant.getEpochSecond).value, offset + 8, instant.getNano).value,
+        12
+      )
     }
     override def deserialize(buf: ByteBuffer, offset: Int) = {
       val second = longFormatter.deserialize(buf, offset).value
       val nano = intFormatter.deserialize(buf, offset + 8).value
-      DeserializeResult(Instant.ofEpochSecond(second, nano).atOffset(ZoneOffset.UTC).toLocalDateTime, 12)
+      FormatResult(Instant.ofEpochSecond(second, nano).atOffset(ZoneOffset.UTC).toLocalDateTime, 12)
     }
   }
 
-  private[this] def serializeOffsetDateTime(bytes: Array[Byte], offset: Int, value: OffsetDateTime): (Array[Byte], Int) = {
+  private[this] def serializeOffsetDateTime(bytes: Array[Byte], offset: Int, value: OffsetDateTime) = {
     val instant = value.toInstant
-    val bs = intFormatter.serialize(longFormatter.serialize(bytes, offset, instant.getEpochSecond)._1, offset + 8, instant.getNano)._1
+    val bs = intFormatter.serialize(longFormatter.serialize(bytes, offset, instant.getEpochSecond).value, offset + 8, instant.getNano).value
     val offsetMinites = (value.getOffset.getTotalSeconds / 60).toShort
-    (shortFormatter.serialize(bs, offset + 12, offsetMinites)._1, 14)
+    FormatResult(shortFormatter.serialize(bs, offset + 12, offsetMinites).value, 14)
   }
 
   private[this] def deserializeOffsetDateTime(buf: ByteBuffer, offset: Int): OffsetDateTime = {
@@ -38,7 +41,7 @@ object TimeFormatterInstances {
     override def serialize(bytes: Array[Byte], offset: Int, value: OffsetDateTime) =
       serializeOffsetDateTime(bytes, offset, value)
     override def deserialize(buf: ByteBuffer, offset: Int) = {
-      DeserializeResult(deserializeOffsetDateTime(buf, offset), 14)
+      FormatResult(deserializeOffsetDateTime(buf, offset), 14)
     }
   }
 
@@ -47,7 +50,7 @@ object TimeFormatterInstances {
     override def serialize(bytes: Array[Byte], offset: Int, value: ZonedDateTime) =
       serializeOffsetDateTime(bytes, offset, value.toOffsetDateTime)
     override def deserialize(buf: ByteBuffer, offset: Int) = {
-      DeserializeResult(deserializeOffsetDateTime(buf, offset).toZonedDateTime, 14)
+      FormatResult(deserializeOffsetDateTime(buf, offset).toZonedDateTime, 14)
     }
   }
 
