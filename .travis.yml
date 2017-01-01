@@ -15,8 +15,8 @@ script:
 
 env:
   matrix:
-  - TEST_PROJECT="zero-formatterJVM"
-  - TEST_PROJECT="zero-formatterJS"
+  - TEST_PROJECT="rootJVM"
+  - TEST_PROJECT="rootJS"
 
 cache:
   directories:
