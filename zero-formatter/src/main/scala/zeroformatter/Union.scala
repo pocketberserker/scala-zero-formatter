@@ -6,7 +6,7 @@ abstract class Union[K: Formatter] {
 
   def key: K
 
-  def serializeKey(bytes: Array[Byte], offset: Int): FormatResult[Array[Byte]] =
+  def serializeKey(bytes: Array[Byte], offset: Int): LazyResult[Array[Byte]] =
     implicitly[Formatter[K]].serialize(bytes, offset, key)
 
   def checkKey(buf: ByteBuffer, offset: Int): Option[Int] = {

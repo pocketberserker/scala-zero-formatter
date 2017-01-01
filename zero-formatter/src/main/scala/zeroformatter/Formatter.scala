@@ -12,15 +12,13 @@ trait ZeroFormattable {
   def length: Option[Int]
 }
 
-case class FormatResult[T](value: T, byteSize: Int)
-
 abstract class Formatter[T] extends ZeroFormattable { self =>
 
   def default: T = null.asInstanceOf[T]
 
-  def serialize(bytes: Array[Byte], offset: Int, value: T): FormatResult[Array[Byte]]
+  def serialize(bytes: Array[Byte], offset: Int, value: T): LazyResult[Array[Byte]]
 
-  def deserialize(buf: ByteBuffer, offset: Int): FormatResult[T]
+  def deserialize(buf: ByteBuffer, offset: Int): LazyResult[T]
 
   def xmap[U](f: T => U, g: U => T): Formatter[U] = new Formatter[U] {
     override def length = self.length
@@ -29,7 +27,7 @@ abstract class Formatter[T] extends ZeroFormattable { self =>
       self.serialize(bytes, offset, g(value))
     override def deserialize(buf: ByteBuffer, offset: Int) = {
       val r = self.deserialize(buf, offset)
-      FormatResult(f(r.value), r.byteSize)
+      LazyResult(f(r.value), r.byteSize)
     }
   }
 }
@@ -50,8 +48,8 @@ object Formatter extends FormatterInstances {
         case ((bytes, offset, byteSize), (value, index)) =>
           val o = offset + byteSize
           val r = F.serialize(bytes, o, value)
-          intFormatter.serialize(r.value, offset + 4 + 4 + 4 * index, o)
-          (r.value, offset, byteSize + r.byteSize)
+          val r2 = intFormatter.serialize(r.value, offset + 4 + 4 + 4 * index, o)
+          (r2.value, offset, byteSize + r.byteSize)
       }
   }
 
@@ -118,22 +116,22 @@ object Formatter extends FormatterInstances {
         // [byteSize:int(4)] + [lastIndex:int(4)] + [indexOffset...:int(4 * lastIndex)]
         val initbyteSize = 4 + 4 + ((lastIndex + 1) * 4)
         val (result, _, byteSize) = values.foldLeft((bs, offset, initbyteSize))(writeObject)
-        FormatResult(writeInt(result, offset, byteSize), byteSize)
+        LazyResult(writeInt(result, offset, byteSize), byteSize)
       }
 
       override def deserialize(buf: ByteBuffer, offset: Int) = {
         val byteSize = intFormatter.deserialize(buf, offset).value
-        if(byteSize == -1) FormatResult(null.asInstanceOf[A], byteSize)
+        if(byteSize == -1) LazyResult(null.asInstanceOf[A], byteSize)
         val li = intFormatter.deserialize(buf, offset + 4).value
         val result = formattersWithIndex.foldRight(ReadObjectResult(buf, offset, li, HNil: HNil))(readObject)
-        FormatResult(gen.from(result.value), byteSize)
+        LazyResult(gen.from(result.value), byteSize)
       }
     }
   }
 
   private[this] object writeEnum extends Poly2 {
     implicit def default[T <: Enum[_]] =
-      at[(FormatResult[Array[Byte]], Int), T] {
+      at[(LazyResult[Array[Byte]], Int), T] {
         case ((result, offset), value) =>
           (value.serialize(result.value, offset), offset)
       }
@@ -160,13 +158,13 @@ object Formatter extends FormatterInstances {
 
   private[this] object readEnum extends Poly2 {
     implicit def read[V <: Enum[_], U <: Enum[_]] =
-      at[ReadEnumResult[FormatResult[U]], V] {
+      at[ReadEnumResult[LazyResult[U]], V] {
         case (acc, f) => acc.value match {
           case Some(_) => acc
           case None =>
             f.check(acc.buf, acc.offset) match {
               case Some(byteSize) =>
-                acc.copy(value = Some(FormatResult(f.asInstanceOf[U], byteSize)))
+                acc.copy(value = Some(LazyResult(f.asInstanceOf[U], byteSize)))
               case None => acc
             }
         }
@@ -183,9 +181,9 @@ object Formatter extends FormatterInstances {
     generator: RightFolder.Aux[D, EnumFormatterResult[B, HNil], genEnumFormatter.type, EnumFormatterResult[B, E]],
     isHCons: IsHCons.Aux[E, F, G],
     // serialize
-    write: ops.coproduct.LeftFolder.Aux[B, (FormatResult[Array[Byte]], Int), writeEnum.type, (FormatResult[Array[Byte]], Int)],
+    write: ops.coproduct.LeftFolder.Aux[B, (LazyResult[Array[Byte]], Int), writeEnum.type, (LazyResult[Array[Byte]], Int)],
     // deserialize
-    read: LeftFolder.Aux[E, ReadEnumResult[FormatResult[A]], readEnum.type, ReadEnumResult[FormatResult[A]]]
+    read: LeftFolder.Aux[E, ReadEnumResult[LazyResult[A]], readEnum.type, ReadEnumResult[LazyResult[A]]]
   ): Formatter[A] = {
 
     val fs =
@@ -199,14 +197,14 @@ object Formatter extends FormatterInstances {
 
       override def serialize(bytes: Array[Byte], offset: Int, value: A) = {
         val values = gen.to(value)
-        values.foldLeft((FormatResult(bytes, 0), offset))(writeEnum)
+        values.foldLeft((LazyResult(bytes, 0), offset))(writeEnum)
           ._1
       }
 
       override def deserialize(buf: ByteBuffer, offset: Int) = {
-        fs.foldLeft(ReadEnumResult(buf, offset, None: Option[FormatResult[A]]))(readEnum)
+        fs.foldLeft(ReadEnumResult(buf, offset, None: Option[LazyResult[A]]))(readEnum)
           .value
-          .getOrElse(FormatResult(null.asInstanceOf[A], 0))
+          .getOrElse(LazyResult(null.asInstanceOf[A], 0))
       }
     }
   }
@@ -217,41 +215,41 @@ abstract class FormatterInstances1 {
   implicit val boolFormatter: Formatter[Boolean] = new Formatter[Boolean] {
     override val length = Some(1)
     override def serialize(bytes: Array[Byte], offset: Int, value: Boolean) =
-      FormatResult(writeBool(bytes, offset, value), 1)
+      LazyResult(writeBool(bytes, offset, value), 1)
     override def deserialize(buf: ByteBuffer, offset: Int) =
-      FormatResult(buf.get(offset) != 0, 1)
+      LazyResult(buf.get(offset) != 0, 1)
   }
 
   implicit val byteFormatter: Formatter[Byte] = new Formatter[Byte] {
     override val length = Some(1)
     override def serialize(bytes: Array[Byte], offset: Int, value: Byte) =
-      FormatResult(writeByte(bytes, offset, value), 1)
+      LazyResult(writeByte(bytes, offset, value), 1)
     override def deserialize(buf: ByteBuffer, offset: Int) =
-      FormatResult(buf.get(offset), 1)
+      LazyResult(buf.get(offset), 1)
   }
 
   implicit val shortFormatter: Formatter[Short] = new Formatter[Short] {
     override val length = Some(2)
     override def serialize(bytes: Array[Byte], offset: Int, value: Short) =
-      FormatResult(writeShort(bytes, offset, value), 2)
+      LazyResult(writeShort(bytes, offset, value), 2)
     override def deserialize(buf: ByteBuffer, offset: Int) =
-      FormatResult(buf.getShort(offset), 2)
+      LazyResult(buf.getShort(offset), 2)
   }
 
   implicit val intFormatter: Formatter[Int] = new Formatter[Int] {
     override val length = Some(4)
     override def serialize(bytes: Array[Byte], offset: Int, value: Int) =
-      FormatResult(writeInt(bytes, offset, value), 4)
+      LazyResult(writeInt(bytes, offset, value), 4)
     override def deserialize(buf: ByteBuffer, offset: Int) =
-      FormatResult(buf.getInt(offset), 4)
+      LazyResult(buf.getInt(offset), 4)
   }
 
   implicit val longFormatter: Formatter[Long] = new Formatter[Long] {
     override val length = Some(8)
     override def serialize(bytes: Array[Byte], offset: Int, value: Long) =
-      FormatResult(writeLong(bytes, offset, value), 8)
+      LazyResult(writeLong(bytes, offset, value), 8)
     override def deserialize(buf: ByteBuffer, offset: Int) =
-      FormatResult(buf.getLong(offset), 8)
+      LazyResult(buf.getLong(offset), 8)
   }
 
   implicit val ubyteFormatter: Formatter[UByte] = byteFormatter.xmap(b => UByte(b), _.toByte)
@@ -264,7 +262,7 @@ abstract class FormatterInstances1 {
     override def serialize(bytes: Array[Byte], offset: Int, value: Float) =
       intFormatter.serialize(bytes, offset, java.lang.Float.floatToIntBits(value))
     override def deserialize(buf: ByteBuffer, offset: Int) =
-      FormatResult(buf.getFloat(offset), 4)
+      LazyResult(buf.getFloat(offset), 4)
   }
 
   implicit val doubleFormatter: Formatter[Double] = new Formatter[Double] {
@@ -272,15 +270,15 @@ abstract class FormatterInstances1 {
     override def serialize(bytes: Array[Byte], offset: Int, value: Double) =
       longFormatter.serialize(bytes, offset, java.lang.Double.doubleToLongBits(value))
     override def deserialize(buf: ByteBuffer, offset: Int) =
-      FormatResult(buf.getDouble(offset), 8)
+      LazyResult(buf.getDouble(offset), 8)
   }
 
   implicit val charFormatter: Formatter[Char] = new Formatter[Char] {
     override val length = Some(2)
     override def serialize(bytes: Array[Byte], offset: Int, value: Char) =
-      FormatResult(writeChar(bytes, offset, value), 2)
+      LazyResult(writeChar(bytes, offset, value), 2)
     override def deserialize(buf: ByteBuffer, offset: Int) =
-      FormatResult(buf.getChar(offset), 2)
+      LazyResult(buf.getChar(offset), 2)
   }
 
   implicit val stringFormatter: Formatter[String] = new Formatter[String] {
@@ -295,11 +293,11 @@ abstract class FormatterInstances1 {
   implicit val durationFormatter: Formatter[Duration] = new Formatter[Duration] {
     override val length = Some(12)
     override def serialize(bytes: Array[Byte], offset: Int, value: Duration) =
-      FormatResult(intFormatter.serialize(longFormatter.serialize(bytes, offset, value.getSeconds).value, offset + 8, value.getNano).value, 12)
+      LazyResult(intFormatter.serialize(longFormatter.serialize(bytes, offset, value.getSeconds).value, offset + 8, value.getNano).value, 12)
     override def deserialize(buf: ByteBuffer, offset: Int) = {
       val second = longFormatter.deserialize(buf, offset).value
       val nano = intFormatter.deserialize(buf, offset + 8).value
-      FormatResult(Duration.ofSeconds(second, nano), 12)
+      LazyResult(Duration.ofSeconds(second, nano), 12)
     }
   }
 
@@ -314,22 +312,21 @@ abstract class FormatterInstances1 {
         val length = value.length
         val bs = F.length.map(l => ensureCapacity(bytes, offset, 4 + l * length)).getOrElse(bytes)
 
-        val result = value.foldLeft(FormatResult(bs, 4)){ case (acc, v) =>
+        value.foldLeft(intFormatter.serialize(bs, offset, length)){ case (acc, v) =>
           val r = F.serialize(acc.value, offset + acc.byteSize, v)
-          r.copy(byteSize = acc.byteSize + r.byteSize)
+          r.copy(acc.byteSize + r.byteSize)
         }
 
-        intFormatter.serialize(result.value, offset, length)
-        result
       }
 
     override def deserialize(buf: ByteBuffer, offset: Int) = {
       val length = intFormatter.deserialize(buf, offset).value
-      if(length == -1) FormatResult(null.asInstanceOf[Array[T]], 4)
-      else (0 to length - 1).foldLeft(FormatResult(new Array[T](length), 4)){ case (res, i) =>
+      if(length == -1) LazyResult(null.asInstanceOf[Array[T]], 4)
+      else (0 to length - 1).foldLeft(LazyResult(new Array[T](length), 4)){ case (res, i) =>
         val r = F.deserialize(buf, offset + res.byteSize)
-        res.value(i) = r.value
-        res.copy(byteSize = res.byteSize + r.byteSize)
+        val v = res.value
+        v(i) = r.value
+        LazyResult(v, res.byteSize + r.byteSize)
       }
     }
   }
@@ -349,10 +346,10 @@ abstract class FormatterInstances0 extends FormatterInstances1 {
 
     override def deserialize(buf: ByteBuffer, offset: Int) = {
       val r = intFormatter.deserialize(buf, offset)
-      if(r.value == -1) FormatResult(None, r.byteSize)
+      if(r.value == -1) LazyResult(None, r.byteSize)
       else {
         val result = F.deserialize(buf, offset)
-        FormatResult(Some(result.value), result.byteSize)
+        LazyResult(Some(result.value), result.byteSize)
       }
     }
   }
@@ -369,7 +366,7 @@ abstract class FormatterInstances extends FormatterInstances0 {
       case Some(v) =>
         val bs = F.length.map(l => ensureCapacity(bytes, offset, l)).getOrElse(bytes)
         val result = F.serialize(boolFormatter.serialize(bs, offset, true).value, offset + 1, v)
-        result.copy(byteSize = result.byteSize + 1)
+        result.copy(result.byteSize + 1)
       case None => boolFormatter.serialize(bytes, offset, false)
     }
 
@@ -377,9 +374,9 @@ abstract class FormatterInstances extends FormatterInstances0 {
       val r = boolFormatter.deserialize(buf, offset)
       if(r.value) {
         val result = F.deserialize(buf, offset + 1)
-        FormatResult(Some(result.value), r.byteSize + result.byteSize)
+        LazyResult(Some(result.value), r.byteSize + result.byteSize)
       }
-      else FormatResult(None, r.byteSize)
+      else LazyResult(None, r.byteSize)
     }
   }
 

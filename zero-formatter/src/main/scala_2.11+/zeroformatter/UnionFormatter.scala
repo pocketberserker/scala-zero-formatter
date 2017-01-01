@@ -80,14 +80,14 @@ object UnionFormatter {
       override def serialize(bytes: Array[Byte], offset: Int, value: A) = {
         val values = gen.to(value)
         val (result, _, byteSize) = values.foldLeft((bytes, offset + 4, 4))(writeUnion)
-        FormatResult(writeInt(result, offset, byteSize), byteSize)
+        LazyResult(writeInt(result, offset, byteSize), byteSize)
       }
 
       override def deserialize(buf: ByteBuffer, offset: Int) = {
         val byteSize = intFormatter.deserialize(buf, offset).value
-        if(byteSize == -1) FormatResult(null.asInstanceOf[A], byteSize)
+        if(byteSize == -1) LazyResult(null.asInstanceOf[A], byteSize)
         val result = fs.foldLeft(ReadUnionResult(buf, offset + 4, None: Option[A]))(readUnion)
-        FormatResult(result.value.getOrElse(null.asInstanceOf[A]), byteSize)
+        LazyResult(result.value.getOrElse(null.asInstanceOf[A]), byteSize)
       }
     }
   }

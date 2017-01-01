@@ -86,27 +86,27 @@ object BinaryUtil {
 
   private[this] val intSize = 4
 
-  def writeString(bytes: Array[Byte], offset: Int, value: String): FormatResult[Array[Byte]] =
+  def writeString(bytes: Array[Byte], offset: Int, value: String): LazyResult[Array[Byte]] =
     if(value == null) {
-      FormatResult(writeInt(bytes, offset, -1), intSize)
+      LazyResult(writeInt(bytes, offset, -1), intSize)
     }
     else {
       val strBytes = value.getBytes(StandardCharsets.UTF_8)
       val len = strBytes.length
       val bs = writeInt(ensureCapacity(bytes, offset, intSize + len), offset, len)
       for (i <- 0 to len - 1) bs(offset + intSize + i) = strBytes(i)
-      FormatResult(bs, intSize + len)
+      LazyResult(bs, intSize + len)
     }
 
-  def readString(buf: ByteBuffer, offset: Int): FormatResult[String] = {
+  def readString(buf: ByteBuffer, offset: Int): LazyResult[String] = {
     val len = buf.getInt(offset)
     if(len == -1) {
-      FormatResult(null.asInstanceOf[String], intSize)
+      LazyResult(null.asInstanceOf[String], intSize)
     }
     else {
       val bytes = new Array[Byte](len)
       for(i <- 0 to len - 1) bytes(i) = buf.get(offset + intSize + i)
-      FormatResult(new String(bytes, StandardCharsets.UTF_8), intSize + len)
+      LazyResult(new String(bytes, StandardCharsets.UTF_8), intSize + len)
     }
   }
 }

@@ -12,7 +12,7 @@ abstract class Enum[
 
   override val length: Option[Int] = formatter.length
 
-  def serialize(bytes: Array[Byte], offset: Int): FormatResult[Array[Byte]] =
+  def serialize(bytes: Array[Byte], offset: Int): LazyResult[Array[Byte]] =
     formatter.serialize(bytes, offset, label)
 
   def check(buf: ByteBuffer, offset: Int): Option[Int] = {

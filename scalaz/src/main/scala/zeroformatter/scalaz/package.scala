@@ -5,8 +5,12 @@ import Formatter._
 
 package object scalaz {
 
-  implicit val formatterInvariantFunctorInstance: InvariantFunctor[Formatter] = new InvariantFunctor[Formatter] {
-    def xmap[A, B](fa: Formatter[A], f: A => B, g: B => A): Formatter[B] = fa.xmap(f, g)
+  implicit val formatterInvariantFunctor: InvariantFunctor[Formatter] = new InvariantFunctor[Formatter] {
+    override def xmap[A, B](fa: Formatter[A], f: A => B, g: B => A) = fa.xmap(f, g)
+  }
+
+  implicit val lazyResultFunctor: Functor[LazyResult] = new Functor[LazyResult] {
+    override def map[A, B](fa: LazyResult[A])(f: A => B) = fa.map(f)
   }
 
   implicit def maybeFormatter[T: Formatter]: Formatter[Maybe[T]] =
