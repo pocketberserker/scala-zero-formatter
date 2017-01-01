@@ -9,6 +9,7 @@ object Build {
 
   private[this] val zeroFormatterName = "zero-formatter"
   private[this] val scalazName = "zero-formatter-scalaz"
+  private[this] val catsCoreName = "zero-formatter-cats-core"
   val allName = "zero-formatter-all"
 
   private[this] def module(id: String) =
@@ -38,6 +39,7 @@ object Build {
   }
 
   private[this] val dogVersion = "0.7.0"
+  private[this] val catsVersion = "0.8.1"
 
   lazy val zeroFormatter = module("zero-formatter").settings(
     name := zeroFormatterName,
@@ -64,4 +66,11 @@ object Build {
       "com.github.scalaprops" %% "scalaprops-scalazlaws" % "0.3.4" % "test"
     )
   ).dependsOn(zeroFormatter % "test->test;compile->compile")
+
+  lazy val catsCore = module("cats-core").settings(
+    name := catsCoreName,
+    libraryDependencies ++= Seq(
+      "org.typelevel" %% "cats" % "0.8.1"
+    )
+  ).dependsOn(zeroFormatter)
 }

@@ -1,11 +1,11 @@
 import Build._
 
 lazy val jvmProjects = Seq[ProjectReference](
-  zeroFormatterJVM, scalazJVM
+  zeroFormatterJVM, scalazJVM, catsCoreJVM
 )
 
 lazy val jsProjects = Seq[ProjectReference](
-  zeroFormatterJS, scalazJS
+  zeroFormatterJS, scalazJS, catsCoreJS
 )
 
 lazy val zeroFormatterJS = zeroFormatter.js
@@ -14,6 +14,9 @@ lazy val zeroFormatterRoot = project.aggregate(zeroFormatterJS, zeroFormatterJVM
 lazy val scalazJS = scalaz.js
 lazy val scalazJVM = scalaz.jvm
 lazy val scalazRoot = project.aggregate(scalazJS, scalazJVM)
+lazy val catsCoreJS = catsCore.js
+lazy val catsCoreJVM = catsCore.jvm
+lazy val catsCoreRoot = project.aggregate(catsCoreJS, catsCoreJVM)
 
 val root = Project("root", file(".")).settings(
   Common.commonSettings
