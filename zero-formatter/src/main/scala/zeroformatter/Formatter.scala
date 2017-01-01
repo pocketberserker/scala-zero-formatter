@@ -16,12 +16,15 @@ case class FormatResult[T](value: T, byteSize: Int)
 
 abstract class Formatter[T] extends ZeroFormattable { self =>
 
+  def default: T = null.asInstanceOf[T]
+
   def serialize(bytes: Array[Byte], offset: Int, value: T): FormatResult[Array[Byte]]
 
   def deserialize(buf: ByteBuffer, offset: Int): FormatResult[T]
 
   def xmap[U](f: T => U, g: U => T): Formatter[U] = new Formatter[U] {
     override def length = self.length
+    override def default = f(self.default)
     override def serialize(bytes: Array[Byte], offset: Int, value: U) =
       self.serialize(bytes, offset, g(value))
     override def deserialize(buf: ByteBuffer, offset: Int) = {
@@ -68,10 +71,10 @@ object Formatter extends FormatterInstances {
       at[(Formatter[T], Int), ReadObjectResult[U]] {
         case ((formatter, index), acc) =>
           val v =
-            if(index > acc.lastIndex) null.asInstanceOf[T]
+            if(index > acc.lastIndex) formatter.default
             else {
               val o = intFormatter.deserialize(acc.buf, acc.offset + 4 + 4 + 4 * index).value
-              if(o == 0) null.asInstanceOf[T]
+              if(o == 0) formatter.default
               else formatter.deserialize(acc.buf, o).value
             }
           acc.copy(value = v :: acc.value)
@@ -257,6 +260,8 @@ abstract class FormatterInstances0 extends FormatterInstances1 {
   implicit def optionFormatter[T](implicit F: Formatter[T]): Formatter[Option[T]] = new Formatter[Option[T]] {
     override val length = F.length
 
+    override val default = None
+
     override def serialize(bytes: Array[Byte], offset: Int, value: Option[T]) = value match {
       case Some(v) => F.serialize(bytes, offset, v)
       case None => intFormatter.serialize(bytes, offset, -1)
@@ -277,6 +282,8 @@ abstract class FormatterInstances extends FormatterInstances0 {
 
   def nullableFormatter[T](implicit F: Formatter[T]): Formatter[Option[T]] = new Formatter[Option[T]] {
     override val length = F.length.map(_ + 1)
+
+    override val default = None
 
     override def serialize(bytes: Array[Byte], offset: Int, value: Option[T]) = value match {
       case Some(v) =>
