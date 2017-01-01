@@ -66,8 +66,8 @@ see also [WireFormat Specification](https://github.com/neuecc/ZeroFormatter/tree
 | ---- | ---- | --- |
 | Object | Object | if byteSize = -1, indicates null |
 | Option[Object] | Object | if byteSize = -1, indicates `None` |
-| | Struct | |
-| | Struct? | |
+| `Struct` | Struct | |
+| `Option[Struct]` | Struct? | |
 
 ### Union Format
 

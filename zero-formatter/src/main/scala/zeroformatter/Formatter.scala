@@ -208,6 +208,64 @@ object Formatter extends FormatterInstances {
       }
     }
   }
+
+  private[this] object writeStruct extends Poly2 {
+    implicit def write[T](implicit F: Formatter[T]) =
+      at[(Array[Byte], Int, Int), T] {
+        case ((bytes, offset, byteSize), value) =>
+          val r = F.serialize(bytes, offset, value)
+          (r.value, offset + r.byteSize, byteSize + r.byteSize)
+      }
+  }
+
+  private[this] case class ReadStructResult[T <: HList](buf: ByteBuffer, offset: Int, value: T, byteSize: Int)
+
+  private[this] object readStruct extends Poly2 {
+    implicit def read[T, U <: HList] =
+      at[ReadStructResult[U], Formatter[T]] {
+        case (acc, formatter) =>
+          val v = formatter.deserialize(acc.buf, acc.offset + acc.byteSize)
+          acc.copy(value = v.value :: acc.value, byteSize = acc.byteSize + v.byteSize)
+      }
+  }
+
+  implicit def structFormatter[
+    A <: Struct, B <: HList, C <: HList, D <: HList
+  ](implicit
+    gen: Generic.Aux[A, B],
+    // serialize
+    write: LeftFolder.Aux[B, (Array[Byte], Int, Int), writeStruct.type, (Array[Byte], Int, Int)],
+    // deserialize
+    init: FillWith[zero.type, B],
+    generator: RightFolder.Aux[B, HNil, genObjectFormatter.type, C],
+    read: LeftFolder.Aux[C, ReadStructResult[HNil], readStruct.type, ReadStructResult[D]],
+    reverse: Reverse.Aux[D, B]
+    ): Formatter[A] = {
+
+    val formatters =
+      HList.fillWith[B](zero)
+        .foldRight(HNil: HNil)(genObjectFormatter)
+
+    new Formatter[A] {
+
+      override val length = None
+
+      override def serialize(bytes: Array[Byte], offset: Int, value: A) = {
+        val (result, _, byteSize) =
+          gen.to(value).foldLeft((bytes, offset, 0))(writeStruct)
+        LazyResult(result, byteSize)
+      }
+
+      override def deserialize(buf: ByteBuffer, offset: Int) = {
+        val result =
+          formatters.foldLeft(ReadStructResult(buf, offset, HNil: HNil, 0))(readStruct)
+        LazyResult(gen.from(result.value.reverse), result.byteSize)
+      }
+    }
+  }
+
+  implicit def structOptionFormatter[A <: Struct : Formatter]: Formatter[Option[A]] =
+    nullableFormatter[A]
 }
 
 abstract class FormatterInstances1 {
