@@ -8,6 +8,7 @@ import org.scalajs.sbtplugin.ScalaJSPlugin.autoImport._
 object Build {
 
   private[this] val zeroFormatterName = "zero-formatter"
+  private[this] val scalazName = "zero-formatter-scalaz"
   val allName = "zero-formatter-all"
 
   private[this] def module(id: String) =
@@ -55,4 +56,12 @@ object Build {
   ).jsSettings(
     libraryDependencies += "org.scala-js" %%% "scalajs-java-time" % "0.2.0"
   )
+
+  lazy val scalaz = module("scalaz").settings(
+    name := scalazName,
+    libraryDependencies ++= Seq(
+      "org.scalaz" %%% "scalaz-core" % "7.2.8",
+      "com.github.scalaprops" %% "scalaprops-scalazlaws" % "0.3.4" % "test"
+    )
+  ).dependsOn(zeroFormatter % "test->test;compile->compile")
 }

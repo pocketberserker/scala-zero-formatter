@@ -33,6 +33,8 @@ abstract class Formatter[T] extends ZeroFormattable { self =>
 
 object Formatter extends FormatterInstances {
 
+  def apply[T](implicit F: Formatter[T]): Formatter[T] = F
+
   private[this] object flatten extends Poly1 {
     implicit def some[T] = at[Some[Index]]{
       case Some(index) => index.value
