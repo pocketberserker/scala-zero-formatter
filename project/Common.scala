@@ -18,6 +18,14 @@ object Common {
     Nil
   )
 
+  private val tagName = Def.setting{
+    s"v${if (releaseUseGlobalVersion.value) (version in ThisBuild).value else version.value}"
+  }
+
+  val tagOrHash = Def.setting{
+    if(isSnapshot.value) gitHash else tagName.value
+  }
+
   private[this] val scala211 = "2.11.8"
 
   lazy val commonSettings = Seq(
@@ -41,6 +49,7 @@ object Common {
     scalacOptions ++= PartialFunction.condOpt(CrossVersion.partialVersion(scalaVersion.value)){
       case Some((2, v)) if v >= 11 => unusedWarnings
     }.toList.flatten,
+    releaseTagName := tagName.value,
     releaseProcess := Seq[ReleaseStep](
       checkSnapshotDependencies,
       inquireVersions,
@@ -75,7 +84,7 @@ object Common {
       <scm>
         <url>git@github.com:pocketberserker/scala-zero-formatter.git</url>
         <connection>scm:git:git@github.com:pocketberserker/scala-zero-formatter.git</connection>
-        <tag>{if(isSnapshot.value) gitHash else { "v" + version.value }}</tag>
+        <tag>{tagOrHash.value}</tag>
       </scm>
     ,
     description := "Implementation of ZeroFormatter in Scala",

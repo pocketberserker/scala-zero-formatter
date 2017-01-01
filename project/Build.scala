@@ -18,6 +18,12 @@ object Build {
     ).settings(
       scalaJSStage in Test := FastOptStage,
       jsEnv := NodeJSEnv().value
+    ).jsSettings(
+      scalacOptions += {
+        val a = (baseDirectory in LocalRootProject).value.toURI.toString
+        val g = "https://raw.githubusercontent.com/pocketberserker/scala-zero-formatter/" + Common.tagOrHash.value
+        s"-P:scalajs:mapSourceURI:$a->$g/"
+      }
     )
 
   val modules: List[String] = (
