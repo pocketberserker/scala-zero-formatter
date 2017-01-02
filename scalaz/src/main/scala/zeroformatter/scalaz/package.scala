@@ -10,7 +10,7 @@ package object scalaz {
   }
 
   implicit val lazyResultFunctor: Functor[LazyResult] = new Functor[LazyResult] {
-    override def map[A, B](fa: LazyResult[A])(f: A => B) = fa.map(f)
+    override def map[A, B](fa: LazyResult[A])(f: A => B) = fa.map(a => f(a))
   }
 
   implicit def maybeFormatter[T: Formatter]: Formatter[Maybe[T]] =
