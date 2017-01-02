@@ -28,7 +28,7 @@ see also [WireFormat Specification](https://github.com/neuecc/ZeroFormatter/tree
 | `LocalDateTime` | `DateTime` | JVM only. |
 | `OffsetDateTime` | `DateTimeOffset` | JVM only. |
 | `ZonedDateTime` | `DateTimeOffset` | JVM only. `ZonedDateTime` can not deserialize Zone ID. |
-| `String` | ← | |
+| `String` | ← | Scala and C# string is always `String?` currently. |
 | `Option[Short]` | `Int16?` | |
 | `Option[Int]` | `Int32?`| |
 | `Option[Long]` | `Int64`? | |

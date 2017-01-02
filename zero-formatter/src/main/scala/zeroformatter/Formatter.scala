@@ -393,4 +393,7 @@ abstract class FormatterInstances extends FormatterInstances0 {
   implicit val doubleOptionFormatter: Formatter[Option[Double]] = nullableFormatter[Double]
   implicit val charOptionFormatter: Formatter[Option[Char]] = nullableFormatter[Char]
   implicit val durationOptionFormatter: Formatter[Option[Duration]] = nullableFormatter[Duration]
+
+  implicit val stringOptionFormatter: Formatter[Option[String]] =
+    stringFormatter.xmap(Option[String](_), _.getOrElse(null))
 }
