@@ -16,7 +16,7 @@ sealed abstract class LazyResult[A] { self =>
 
 object LazyResult {
   def apply[A](v: => A, s: => Int): LazyResult[A] = new LazyResult[A] {
-    def value = v
-    def byteSize = s
+    override def value = v
+    override val byteSize = s
   }
 }
