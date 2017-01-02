@@ -26,6 +26,17 @@ object Common {
     if(isSnapshot.value) gitHash else tagName.value
   }
 
+  private[this] val compilerOptions = Seq(
+    "-deprecation",
+    "-unchecked",
+    "-Xlint",
+    "-feature",
+    "-language:existentials",
+    "-language:higherKinds",
+    "-language:implicitConversions",
+    "-language:reflectiveCalls"
+  )
+
   private[this] val scala211 = "2.11.8"
 
   lazy val commonSettings = Seq(
@@ -35,17 +46,7 @@ object Common {
     scalaVersion := scala211,
     crossScalaVersions := Seq("2.10.6", scala211, "2.12.1"),
     resolvers += Opts.resolver.sonatypeReleases,
-    scalacOptions ++= (
-      "-deprecation" ::
-      "-unchecked" ::
-      "-Xlint" ::
-      "-feature" ::
-      "-language:existentials" ::
-      "-language:higherKinds" ::
-      "-language:implicitConversions" ::
-      "-language:reflectiveCalls" ::
-      Nil
-    ),
+    scalacOptions ++= compilerOptions,
     scalacOptions ++= PartialFunction.condOpt(CrossVersion.partialVersion(scalaVersion.value)){
       case Some((2, v)) if v >= 11 => unusedWarnings
     }.toList.flatten,
