@@ -4,7 +4,7 @@ import dog._
 import zeroformatter._
 import Formatter._
 
-object EncodingBenchmarkSpec extends Base {
+object EncodingBenchmarkTest extends Base {
   val benchmark: EncodingBenchmark = new EncodingBenchmark
 
   import benchmark._
@@ -14,6 +14,6 @@ object EncodingBenchmarkSpec extends Base {
   }
 
   //val `correctly encode case classes using ZeroFormatter` = TestCase {
-  //  assert(decodeFoos(encodeFoosZ) == Some(foos))
+  //  assert(ZeroFormatter.deserialize[Map[String, Foo]](encodeFoosZ) == foos)
   //}
 }

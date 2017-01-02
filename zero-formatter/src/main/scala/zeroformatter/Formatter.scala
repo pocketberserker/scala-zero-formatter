@@ -392,6 +392,57 @@ abstract class FormatterInstances1 {
 
   implicit def listFormatter[A: Formatter: ClassTag]: Formatter[List[A]] =
     arrayFormatter[A].xmap(_.toList, _.toArray)
+
+  implicit def tuple2Formatter[A1, A2](implicit
+    A1: Formatter[A1],
+    A2: Formatter[A2]
+  ): Formatter[(A1, A2)] =
+    new Formatter[(A1, A2)] {
+       override val length = (A1.length, A2.length) match {
+         case (Some(l1), Some(l2)) => Some(l1 + l2)
+         case _ => None
+      }
+      override def serialize(bytes: Array[Byte], offset: Int, value: (A1, A2)) = {
+        val r1 = A1.serialize(bytes, offset, value._1)
+        val r2 = A2.serialize(r1.value, offset + r1.byteSize, value._2)
+        r2.copy(r1.byteSize + r2.byteSize)
+      }
+      override def deserialize(buf: ByteBuffer, offset: Int) = {
+        val r1 = A1.deserialize(buf, offset)
+        val r2 = A2.deserialize(buf, offset + r1.byteSize)
+        LazyResult((r1.value, r2.value), r1.byteSize + r2.byteSize)
+      }
+    }
+
+  implicit def mapFormatter[K: ClassTag: Formatter, V: ClassTag: Formatter]: Formatter[Map[K, V]] = {
+    val F = Formatter[(K, V)]
+    new Formatter[Map[K, V]] {
+      override val length = None
+
+      override def serialize(bytes: Array[Byte], offset: Int, value: Map[K, V]) =
+        if(value == null) {
+          intFormatter.serialize(bytes, offset, -1)
+        }
+        else {
+          val length = value.size
+          val bs = F.length.map(l => ensureCapacity(bytes, offset, 4 + l * length)).getOrElse(bytes)
+
+          value.foldLeft(intFormatter.serialize(bs, offset, length)){ case (acc, kv) =>
+            val r = F.serialize(acc.value, offset + acc.byteSize, kv)
+            r.copy(acc.byteSize + r.byteSize)
+          }
+        }
+
+      override def deserialize(buf: ByteBuffer, offset: Int) = {
+        val length = intFormatter.deserialize(buf, offset).value
+        if(length == -1) LazyResult(null.asInstanceOf[Map[K, V]], 4)
+        else (0 to length - 1).foldLeft(LazyResult(Map[K, V](), 4)){ case (res, _) =>
+          val r = F.deserialize(buf, offset + res.byteSize)
+          LazyResult(res.value + r.value, res.byteSize + r.byteSize)
+        }
+      }
+    }
+  }
 }
 
 abstract class FormatterInstances0 extends FormatterInstances1 {

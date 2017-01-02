@@ -26,7 +26,7 @@ trait ZeroFormatterEncoding { self: ExampleData =>
 
 trait ZeroFormatterDecoding { self: ExampleData =>
   //@Benchmark
-  //def decodeFoosZ: Map[String, Foo] = ZeroFormatter.deserialize[Map[String, Foo](foosZ)
+  //def decodeFoosZ: Map[String, Foo] = ZeroFormatter.deserialize[Map[String, Foo]](foosZ)
 
   @Benchmark
   def decodeIntsZ: List[Int] = ZeroFormatter.deserialize[List[Int]](intsZ)

@@ -3,7 +3,7 @@ package zeroformatter.benchmark
 import zeroformatter._
 import dog._
 
-object DecodingBenchmarkSpec extends Base {
+object DecodingBenchmarkTest extends Base {
   val benchmark: DecodingBenchmark = new DecodingBenchmark
 
   import benchmark._
@@ -13,6 +13,6 @@ object DecodingBenchmarkSpec extends Base {
   }
 
   //val `correctly decode case classes using ZeroFormatter` = TestCase {
-  //  assert(decodeFoosC === foos)
+  //  assert(decodeFoosZ == foos)
   //}
 }
