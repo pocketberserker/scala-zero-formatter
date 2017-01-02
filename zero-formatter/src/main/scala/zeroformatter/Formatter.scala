@@ -2,6 +2,7 @@ package zeroformatter
 
 import java.nio.ByteBuffer
 import java.time._
+import scala.reflect.ClassTag
 import spire.math.{UByte, UShort, UInt, ULong}
 import shapeless._
 import shapeless.ops.hlist._
@@ -359,7 +360,7 @@ abstract class FormatterInstances1 {
     }
   }
 
-  implicit def arrayFormatter[T: scala.reflect.ClassTag](implicit F: Formatter[T]): Formatter[Array[T]] = new Formatter[Array[T]] {
+  implicit def arrayFormatter[T: ClassTag](implicit F: Formatter[T]): Formatter[Array[T]] = new Formatter[Array[T]] {
     override val length = None
 
     override def serialize(bytes: Array[Byte], offset: Int, value: Array[T]) =
@@ -388,6 +389,9 @@ abstract class FormatterInstances1 {
       }
     }
   }
+
+  implicit def listFormatter[A: Formatter: ClassTag]: Formatter[List[A]] =
+    arrayFormatter[A].xmap(_.toList, _.toArray)
 }
 
 abstract class FormatterInstances0 extends FormatterInstances1 {

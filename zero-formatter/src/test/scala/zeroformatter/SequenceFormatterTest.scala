@@ -6,6 +6,7 @@ import scalaz.Equal
 import scalaz.std.anyVal._
 import scalaz.std.string._
 import scalaz.std.option._
+import scalaz.std.list._
 
 object ArrayFormatterTest extends Base {
 
@@ -107,6 +108,17 @@ object ArrayFormatterTest extends Base {
       actualBytes = ZeroFormatter.serialize(value)
       _ <- assert.eq(bytes, actualBytes).lift
       _ <- assert.eq(value, ZeroFormatter.deserialize[Option[Array[TestElement]]](actualBytes)).lift
+    } yield ()
+  }
+
+  val `serialize and deserialize List[TestElement]` = TestCase {
+    for {
+      values <- `serialize Array[TestElement]`
+      value = values._1.toList
+      bytes = values._2
+      actualBytes = ZeroFormatter.serialize(value)
+      _ <- assert.eq(bytes, actualBytes).lift
+      _ <- assert.eq(value, ZeroFormatter.deserialize[List[TestElement]](actualBytes)).lift
     } yield ()
   }
 }
