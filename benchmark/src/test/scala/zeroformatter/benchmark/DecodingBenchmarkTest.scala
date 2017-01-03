@@ -12,7 +12,7 @@ object DecodingBenchmarkTest extends Base {
     assert(decodeIntsZ == ints)
   }
 
-  //val `correctly decode case classes using ZeroFormatter` = TestCase {
-  //  assert(decodeFoosZ == foos)
-  //}
+  val `correctly decode case classes using ZeroFormatter` = TestCase {
+    assert(decodeFoosZ == foos)
+  }
 }

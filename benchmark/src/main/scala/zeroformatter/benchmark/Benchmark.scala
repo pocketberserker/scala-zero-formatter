@@ -23,7 +23,7 @@ class ExampleData extends ZeroFormatterData {
   }.toMap
 
   val intsBytes: Array[Byte] = intsZ
-  //val foosBytes: Array[Byte] = foosZ
+  val foosBytes: Array[Byte] = foosZ
 }
 
 /**
