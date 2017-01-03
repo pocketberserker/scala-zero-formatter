@@ -101,7 +101,7 @@ object BinaryUtil {
   def readString(buf: ByteBuffer, offset: Int): LazyResult[String] = {
     val len = buf.getInt(offset)
     if(len == -1) {
-      LazyResult(null.asInstanceOf[String], intSize)
+      LazyResult(null, intSize)
     }
     else {
       val bytes = new Array[Byte](len)
