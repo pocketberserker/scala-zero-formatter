@@ -380,7 +380,7 @@ abstract class FormatterInstances1 {
 
     override def deserialize(buf: ByteBuffer, offset: Int) = {
       val length = intFormatter.deserialize(buf, offset).value
-      if(length == -1) LazyResult(null.asInstanceOf[Array[T]], 4)
+      if(length == -1) LazyResult(null, 4)
       else (0 to length - 1).foldLeft(LazyResult(new Array[T](length), 4)){ case (res, i) =>
         val r = F.deserialize(buf, offset + res.byteSize)
         val v = res.value
@@ -435,7 +435,7 @@ abstract class FormatterInstances1 {
 
       override def deserialize(buf: ByteBuffer, offset: Int) = {
         val length = intFormatter.deserialize(buf, offset).value
-        if(length == -1) LazyResult(null.asInstanceOf[Map[K, V]], 4)
+        if(length == -1) LazyResult(null, 4)
         else (0 to length - 1).foldLeft(LazyResult(Map[K, V](), 4)){ case (res, _) =>
           val r = F.deserialize(buf, offset + res.byteSize)
           LazyResult(res.value + r.value, res.byteSize + r.byteSize)
