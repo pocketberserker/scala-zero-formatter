@@ -2,6 +2,7 @@ package zeroformatter
 
 import java.nio.{ByteBuffer, ByteOrder}
 import java.nio.charset.StandardCharsets
+import spire.syntax.cfor._
 
 object BinaryUtil {
 
@@ -80,7 +81,7 @@ object BinaryUtil {
     val byteSize = 2
     val bs = ensureCapacity(bytes, offset, byteSize)
     val cs = allocate(byteSize).putChar(value).array()
-    for (i <- 0 to 1) bs(offset + i) = cs(i)
+    cfor(0)(_ <= 1, _ + 1){ i => bs(offset + i) = cs(i) }
     bs
   }
 
@@ -94,7 +95,7 @@ object BinaryUtil {
       val strBytes = value.getBytes(StandardCharsets.UTF_8)
       val len = strBytes.length
       val bs = writeInt(ensureCapacity(bytes, offset, intSize + len), offset, len)
-      for (i <- 0 to len - 1) bs(offset + intSize + i) = strBytes(i)
+      cfor(0)(_ < len, _ + 1){ i => bs(offset + intSize + i) = strBytes(i) }
       LazyResult(bs, intSize + len)
     }
 
@@ -105,7 +106,7 @@ object BinaryUtil {
     }
     else {
       val bytes = new Array[Byte](len)
-      for(i <- 0 to len - 1) bytes(i) = buf.get(offset + intSize + i)
+      cfor(0)(_ < len, _ + 1){ i => bytes(i) = buf.get(offset + intSize + i) }
       LazyResult(new String(bytes, StandardCharsets.UTF_8), intSize + len)
     }
   }
