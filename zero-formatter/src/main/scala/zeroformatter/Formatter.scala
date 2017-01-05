@@ -413,7 +413,7 @@ abstract class FormatterInstances1 {
       }
     }
 
-  implicit def mapFormatter[K: ClassTag: Formatter, V: ClassTag: Formatter]: Formatter[Map[K, V]] = {
+  implicit def mapFormatter[K: Formatter, V: Formatter]: Formatter[Map[K, V]] = {
     val F = Formatter[(K, V)]
     new Formatter[Map[K, V]] {
       override val length = None
