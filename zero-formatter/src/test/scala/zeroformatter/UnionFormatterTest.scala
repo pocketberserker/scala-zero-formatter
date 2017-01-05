@@ -1,7 +1,6 @@
 package zeroformatter
 
 import Formatter._
-import UnionFormatter._
 import dog._
 import scalaz.std.anyVal._
 
