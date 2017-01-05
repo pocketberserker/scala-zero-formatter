@@ -1,11 +1,12 @@
 package zeroformatter.benchmark
 
+import shapeless._
 import zeroformatter._
 import zeroformatter.Formatter._
 import org.openjdk.jmh.annotations._
 
 trait ZeroFormatterFooInstances {
-  implicit def zeroFormatterFoo: Formatter[Foo] = Formatter[Foo]
+  implicit val zeroFormatterFoo: Formatter[Foo] = cachedImplicit
 }
 
 trait ZeroFormatterData { self: ExampleData =>

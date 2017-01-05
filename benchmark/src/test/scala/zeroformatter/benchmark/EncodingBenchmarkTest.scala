@@ -13,7 +13,7 @@ object EncodingBenchmarkTest extends Base {
     assert(ZeroFormatter.deserialize[List[Int]](encodeIntsZ) == ints)
   }
 
-  //val `correctly encode case classes using ZeroFormatter` = TestCase {
-  //  assert(ZeroFormatter.deserialize[Map[String, Foo]](encodeFoosZ) == foos)
-  //}
+  val `correctly encode case classes using ZeroFormatter` = TestCase {
+    assert(ZeroFormatter.deserialize[Map[String, Foo]](encodeFoosZ) == foos)
+  }
 }
