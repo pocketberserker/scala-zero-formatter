@@ -101,7 +101,7 @@ object Formatter extends FormatterInstances {
     ): Formatter[A] = {
 
     val indexes = Annotations[Index, A].apply().filterNot[None.type].map(flatten)
-    val lastIndex = indexes.toList.reduceOption(_ max _).getOrElse(throw new NoIndexException)
+    val lastIndex = indexes.toList.reduceOption(_ max _).getOrElse(throw FormatException("Target object does not have index fields."))
     val formattersWithIndex =
       HList.fillWith[B](zero)
         .foldRight(HNil: HNil)(genObjectFormatter)
@@ -205,7 +205,7 @@ object Formatter extends FormatterInstances {
       override def deserialize(buf: ByteBuffer, offset: Int) = {
         fs.foldLeft(ReadEnumResult(buf, offset, None: Option[LazyResult[A]]))(readEnum)
           .value
-          .getOrElse(LazyResult(null.asInstanceOf[A], 0))
+          .getOrElse(throw FormatException("EnumFormatter could not deserialize Enum label."))
       }
     }
   }

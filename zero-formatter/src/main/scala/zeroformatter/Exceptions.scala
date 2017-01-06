@@ -1,3 +1,3 @@
 package zeroformatter
 
-class NoIndexException extends RuntimeException
+case class FormatException(message: String) extends RuntimeException(message)
