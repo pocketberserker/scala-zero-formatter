@@ -123,9 +123,12 @@ object Formatter extends FormatterInstances {
       override def deserialize(buf: ByteBuffer, offset: Int) = {
         val byteSize = intFormatter.deserialize(buf, offset).value
         if(byteSize == -1) LazyResult(null.asInstanceOf[A], byteSize)
-        val li = intFormatter.deserialize(buf, offset + 4).value
-        val result = formattersWithIndex.foldRight(ReadObjectResult(buf, offset, li, HNil: HNil))(readObject)
-        LazyResult(gen.from(result.value), byteSize)
+        else if(byteSize < -1) throw FormatException(offset, "Invalid byte size.")
+        else {
+          val li = intFormatter.deserialize(buf, offset + 4).value
+          val result = formattersWithIndex.foldRight(ReadObjectResult(buf, offset, li, HNil: HNil))(readObject)
+          LazyResult(gen.from(result.value), byteSize)
+        }
       }
     }
   }
@@ -276,7 +279,14 @@ abstract class FormatterInstances1 {
     override def serialize(bytes: Array[Byte], offset: Int, value: Boolean) =
       LazyResult.strict(writeBool(bytes, offset, value), 1)
     override def deserialize(buf: ByteBuffer, offset: Int) =
-      LazyResult.strict(buf.get(offset) != 0, 1)
+      LazyResult.strict(
+        buf.get(offset) match {
+          case 1 => true
+          case 0 => false
+          case _ => throw FormatException(offset, "Invalid Boolean byte.")
+        },
+        1
+      )
   }
 
   implicit val byteFormatter: Formatter[Byte] = new Formatter[Byte] {
@@ -380,6 +390,7 @@ abstract class FormatterInstances1 {
     override def deserialize(buf: ByteBuffer, offset: Int) = {
       val length = intFormatter.deserialize(buf, offset).value
       if(length == -1) LazyResult(null, 4)
+      else if(length < -1) throw FormatException(offset, "Invalid Array length.")
       else (0 to length - 1).foldLeft(LazyResult.strict(new Array[T](length), 4)){ case (res, i) =>
         val r = F.deserialize(buf, offset + res.byteSize)
         val v = res.value
@@ -435,6 +446,7 @@ abstract class FormatterInstances1 {
       override def deserialize(buf: ByteBuffer, offset: Int) = {
         val length = intFormatter.deserialize(buf, offset).value
         if(length == -1) LazyResult(null, 4)
+        else if(length < -1) throw FormatException(offset, "Invalid Map length.")
         else (0 to length - 1).foldLeft(LazyResult(Map[K, V](), 4)){ case (res, _) =>
           val r = F.deserialize(buf, offset + res.byteSize)
           LazyResult.strict(res.value + r.value, res.byteSize + r.byteSize)
@@ -459,6 +471,7 @@ abstract class FormatterInstances0 extends FormatterInstances1 {
     override def deserialize(buf: ByteBuffer, offset: Int) = {
       val r = intFormatter.deserialize(buf, offset)
       if(r.value == -1) LazyResult(None, r.byteSize)
+      else if(r.value < -1) throw FormatException(offset, "Invalid length or byte size.")
       else {
         val result = F.deserialize(buf, offset)
         LazyResult(Some(result.value), result.byteSize)

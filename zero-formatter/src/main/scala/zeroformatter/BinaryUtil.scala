@@ -104,6 +104,7 @@ object BinaryUtil {
     if(len == -1) {
       LazyResult(null, intSize)
     }
+    else if(len < -1) throw FormatException(offset, "Invalid string length.")
     else {
       val bytes = new Array[Byte](len)
       cfor(0)(_ < len, _ + 1){ i => bytes(i) = buf.get(offset + intSize + i) }

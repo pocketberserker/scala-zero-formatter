@@ -100,8 +100,11 @@ object Union {
       override def deserialize(buf: ByteBuffer, offset: Int) = {
         val byteSize = intFormatter.deserialize(buf, offset).value
         if(byteSize == -1) LazyResult(null.asInstanceOf[A], byteSize)
-        val result = fs.foldLeft(ReadUnionResult(buf, offset + 4, None: Option[A]))(readUnion)
-        LazyResult(result.value.getOrElse(throw FormatException(offset, "Union key does not find.")), byteSize)
+        else if(byteSize < -1) throw FormatException(offset, "Invalid byte size.")
+        else {
+          val result = fs.foldLeft(ReadUnionResult(buf, offset + 4, None: Option[A]))(readUnion)
+          LazyResult(result.value.getOrElse(throw FormatException(offset, "Union key does not find.")), byteSize)
+        }
       }
     }
   }
