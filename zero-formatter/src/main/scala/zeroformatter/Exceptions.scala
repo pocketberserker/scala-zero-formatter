@@ -1,3 +1,3 @@
 package zeroformatter
 
-case class FormatException(message: String) extends RuntimeException(message)
+case class FormatException(offset: Int, message: String) extends RuntimeException(s"[$offset] message")
