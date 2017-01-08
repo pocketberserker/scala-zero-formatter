@@ -101,7 +101,7 @@ object Union {
         val byteSize = intFormatter.deserialize(buf, offset).value
         if(byteSize == -1) LazyResult(null.asInstanceOf[A], byteSize)
         val result = fs.foldLeft(ReadUnionResult(buf, offset + 4, None: Option[A]))(readUnion)
-        LazyResult(result.value.getOrElse(null.asInstanceOf[A]), byteSize)
+        LazyResult(result.value.getOrElse(throw FormatException(offset, "Union key does not find.")), byteSize)
       }
     }
   }
