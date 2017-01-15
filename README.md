@@ -30,10 +30,10 @@ see also [WireFormat Specification](https://github.com/neuecc/ZeroFormatter/tree
 | `String` | ← | Scala and C# string is always nullable currently. |
 | `Option[Short]` | `Int16?` | |
 | `Option[Int]` | `Int32?`| |
-| `Option[Long]` | `Int64`? | |
-| `Option[spire.math.UShort]` | `UInt16`? | |
-| `Option[spire.math.UInt]` | `UInt32`? | |
-| `Option[spire.math.ULong]` | `UInt64`? | |
+| `Option[Long]` | `Int64?` | |
+| `Option[spire.math.UShort]` | `UInt16?` | |
+| `Option[spire.math.UInt]` | `UInt32?` | |
+| `Option[spire.math.ULong]` | `UInt64?` | |
 | `Option[Float]` | `Single?` | |
 | `Option[Double]` | `Double?` | |
 | `Option[Boolean]` | `Boolean?` | |
@@ -71,4 +71,4 @@ see also [WireFormat Specification](https://github.com/neuecc/ZeroFormatter/tree
 
 | Scala | C# | Note |
 | ---- | ---- | --- |
-| `Union` | Union | >= Scala 2.11 |
+| `Union` | Union | |
