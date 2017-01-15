@@ -391,11 +391,17 @@ abstract class FormatterInstances1 {
       val length = intFormatter.deserialize(buf, offset).value
       if(length == -1) LazyResult(null, 4)
       else if(length < -1) throw FormatException(offset, "Invalid Array length.")
-      else (0 to length - 1).foldLeft(LazyResult.strict(new Array[T](length), 4)){ case (res, i) =>
-        val r = F.deserialize(buf, offset + res.byteSize)
-        val v = res.value
-        v(i) = r.value
-        LazyResult.strict(v, res.byteSize + r.byteSize)
+      else {
+        val array = new Array[T](length)
+        var byteSize = 4
+        var i = 0
+        while(i < length) {
+          val r = F.deserialize(buf, offset + byteSize)
+          array(i) = r.value
+          byteSize += r.byteSize
+          i += 1
+        }
+        LazyResult.strict(array, byteSize)
       }
     }
   }
@@ -422,11 +428,16 @@ abstract class FormatterInstances1 {
       if(length == -1) LazyResult(null, 4)
       else if(length < -1) throw FormatException(offset, "Invalid Array length.")
       else {
-        (0 to length - 1).foldLeft(LazyResult.strict(Nil: List[A], 4)){ case (res, i) =>
-          val r = F.deserialize(buf, offset + res.byteSize)
-          LazyResult.strict(r.value :: res.value, res.byteSize + r.byteSize)
+        var list: List[A] = Nil
+        var byteSize = 4
+        var i = 0
+        while(i < length) {
+          val r = F.deserialize(buf, offset + byteSize)
+          list ::= r.value
+          byteSize += r.byteSize
+          i += 1
         }
-          .map(v => v.reverse)
+        LazyResult.strict(list.reverse, byteSize)
       }
     }
   }
