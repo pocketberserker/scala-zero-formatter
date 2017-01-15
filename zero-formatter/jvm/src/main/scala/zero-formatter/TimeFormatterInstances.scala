@@ -45,16 +45,6 @@ object TimeFormatterInstances {
     }
   }
 
-  implicit val zonedDateTimeFormatter: Formatter[ZonedDateTime] = new Formatter[ZonedDateTime] {
-    override val length = Some(14)
-    override def serialize(bytes: Array[Byte], offset: Int, value: ZonedDateTime) =
-      serializeOffsetDateTime(bytes, offset, value.toOffsetDateTime)
-    override def deserialize(buf: ByteBuffer, offset: Int) = {
-      LazyResult(deserializeOffsetDateTime(buf, offset).toZonedDateTime, 14)
-    }
-  }
-
   implicit val localDateTimeOptionFormatter: Formatter[Option[LocalDateTime]] = nullableFormatter[LocalDateTime]
   implicit val offsetDateTimeOptionFormatter: Formatter[Option[OffsetDateTime]] = nullableFormatter[OffsetDateTime]
-  implicit val zonedDateTimeOptionFormatter: Formatter[Option[ZonedDateTime]] = nullableFormatter[ZonedDateTime]
 }

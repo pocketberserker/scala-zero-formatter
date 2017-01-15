@@ -27,7 +27,6 @@ see also [WireFormat Specification](https://github.com/neuecc/ZeroFormatter/tree
 | `Duration` | `TimeSpan` | |
 | `LocalDateTime` | `DateTime` | JVM only. |
 | `OffsetDateTime` | `DateTimeOffset` | JVM only. |
-| `ZonedDateTime` | `DateTimeOffset` | JVM only. `ZonedDateTime` can not deserialize Zone ID. |
 | `String` | ← | Scala and C# string is always nullable currently. |
 | `Option[Short]` | `Int16?` | |
 | `Option[Int]` | `Int32?`| |
@@ -43,7 +42,6 @@ see also [WireFormat Specification](https://github.com/neuecc/ZeroFormatter/tree
 | `Option[Duration]` | `TimeSpan?` | |
 | `Option[LocalDateTime]` | `DateTime?` | JVM only. |
 | `Option[OffsetDateTime]` | `DateTimeOffset?` | JVM only. |
-| `Option[ZonedDateTime]` | `DateTimeOffset?` | JVM only. `ZonedDateTime` can not deserialize Zone ID. |
 | `Option[String]` | | |
 
 ### Sequence Format
