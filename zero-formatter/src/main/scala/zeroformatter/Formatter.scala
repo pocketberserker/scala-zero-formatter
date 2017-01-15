@@ -43,14 +43,16 @@ object Formatter extends FormatterInstances {
     }
   }
 
+  private[this] case class WriteResult(bytes: Array[Byte], offset: Int, byteSize: Int)
+
   private[this] object writeObject extends Poly2 {
     implicit def caseValueIndex[T](implicit F: Formatter[T]) =
-      at[(Array[Byte], Int, Int), (T, Int)] {
-        case ((bytes, offset, byteSize), (value, index)) =>
+      at[WriteResult, (T, Int)] {
+        case (WriteResult(bytes, offset, byteSize), (value, index)) =>
           val o = offset + byteSize
           val r = F.serialize(bytes, o, value)
           val r2 = intFormatter.serialize(r.value, offset + 4 + 4 + 4 * index, o)
-          (r2.value, offset, byteSize + r.byteSize)
+          WriteResult(r2.value, offset, byteSize + r.byteSize)
       }
   }
 
@@ -92,7 +94,7 @@ object Formatter extends FormatterInstances {
     toIndexList: ToTraversable.Aux[F, List, Int],
     // serialize
     zipper : Zip.Aux[B :: F :: HNil, G],
-    write: LeftFolder.Aux[G, (Array[Byte], Int, Int), writeObject.type, (Array[Byte], Int, Int)],
+    write: LeftFolder.Aux[G, WriteResult, writeObject.type, WriteResult],
     // deserialize
     init: FillWith[zero.type, B],
     generator: RightFolder.Aux[B, HNil, genObjectFormatter.type, H],
@@ -116,7 +118,7 @@ object Formatter extends FormatterInstances {
         val bs = writeInt(bytes, offset + 4, lastIndex)
         // [byteSize:int(4)] + [lastIndex:int(4)] + [indexOffset...:int(4 * lastIndex)]
         val initbyteSize = 4 + 4 + ((lastIndex + 1) * 4)
-        val (result, _, byteSize) = values.foldLeft((bs, offset, initbyteSize))(writeObject)
+        val WriteResult(result, _, byteSize) = values.foldLeft(WriteResult(bs, offset, initbyteSize))(writeObject)
         LazyResult(writeInt(result, offset, byteSize), byteSize)
       }
 
@@ -215,10 +217,10 @@ object Formatter extends FormatterInstances {
 
   private[this] object writeStruct extends Poly2 {
     implicit def write[T](implicit F: Formatter[T]) =
-      at[(Array[Byte], Int, Int), T] {
-        case ((bytes, offset, byteSize), value) =>
+      at[WriteResult, T] {
+        case (WriteResult(bytes, offset, byteSize), value) =>
           val r = F.serialize(bytes, offset, value)
-          (r.value, offset + r.byteSize, byteSize + r.byteSize)
+          WriteResult(r.value, offset + r.byteSize, byteSize + r.byteSize)
       }
   }
 
@@ -238,7 +240,7 @@ object Formatter extends FormatterInstances {
   ](implicit
     gen: Generic.Aux[A, B],
     // serialize
-    write: LeftFolder.Aux[B, (Array[Byte], Int, Int), writeStruct.type, (Array[Byte], Int, Int)],
+    write: LeftFolder.Aux[B, WriteResult, writeStruct.type, WriteResult],
     // deserialize
     init: FillWith[zero.type, B],
     generator: RightFolder.Aux[B, HNil, genObjectFormatter.type, C],
@@ -255,8 +257,8 @@ object Formatter extends FormatterInstances {
       override val length = None
 
       override def serialize(bytes: Array[Byte], offset: Int, value: A) = {
-        val (result, _, byteSize) =
-          gen.to(value).foldLeft((bytes, offset, 0))(writeStruct)
+        val WriteResult(result, _, byteSize) =
+          gen.to(value).foldLeft(WriteResult(bytes, offset, 0))(writeStruct)
         LazyResult(result, byteSize)
       }
 
