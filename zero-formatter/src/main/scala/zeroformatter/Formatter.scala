@@ -443,7 +443,7 @@ abstract class FormatterInstances1 {
     override def deserialize(buf: ByteBuffer, offset: Int) = {
       val length = intFormatter.deserialize(buf, offset).value
       if(length == -1) LazyResult(null, 4)
-      else if(length < -1) throw FormatException(offset, "Invalid Array length.")
+      else if(length < -1) throw FormatException(offset, "Invalid List length.")
       else {
         var list: List[A] = Nil
         var byteSize = 4
