@@ -56,25 +56,23 @@ object BinaryUtil {
   }
 
   def writeInt(bytes: Array[Byte], offset: Int, value: Int): Array[Byte] = {
-    val bs = ensureCapacity(bytes, offset, 4)
-    bs(offset) = value.asInstanceOf[Byte]
-    bs(offset + 1) = (value >>> 8).asInstanceOf[Byte]
-    bs(offset + 2) = (value >>> 16).asInstanceOf[Byte]
-    bs(offset + 3) = (value >>> 24).asInstanceOf[Byte]
-    bs
+    @annotation.tailrec
+    def go(bs: Array[Byte], pos: Int, v: Int): Array[Byte] = {
+      bs(offset + pos) = v.asInstanceOf[Byte]
+      if(pos == 3) bs
+      else go(bs, pos + 1, v >>> 8)
+    }
+    go(ensureCapacity(bytes, offset, 4), 0, value)
   }
 
   def writeLong(bytes: Array[Byte], offset: Int, value: Long): Array[Byte] = {
-    val bs = ensureCapacity(bytes, offset, 8)
-    bs(offset) = value.asInstanceOf[Byte]
-    bs(offset + 1) = (value >>> 8).asInstanceOf[Byte]
-    bs(offset + 2) = (value >>> 16).asInstanceOf[Byte]
-    bs(offset + 3) = (value >>> 24).asInstanceOf[Byte]
-    bs(offset + 4) = (value >>> 32).asInstanceOf[Byte]
-    bs(offset + 5) = (value >>> 40).asInstanceOf[Byte]
-    bs(offset + 6) = (value >>> 48).asInstanceOf[Byte]
-    bs(offset + 7) = (value >>> 56).asInstanceOf[Byte]
-    bs
+    @annotation.tailrec
+    def go(bs: Array[Byte], pos: Int, v: Long): Array[Byte] = {
+      bs(offset + pos) = v.asInstanceOf[Byte]
+      if(pos == 7) bs
+      else go(bs, pos + 1, v >>> 8)
+    }
+    go(ensureCapacity(bytes, offset, 8), 0, value)
   }
 
   def writeChar(bytes: Array[Byte], offset: Int, value: Char): Array[Byte] = {
