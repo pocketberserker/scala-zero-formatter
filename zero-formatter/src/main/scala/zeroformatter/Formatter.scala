@@ -51,8 +51,7 @@ object Formatter extends FormatterInstances {
         case (WriteResult(bytes, offset, byteSize), (value, index)) =>
           val o = offset + byteSize
           val r = F.serialize(bytes, o, value)
-          val r2 = intFormatter.serialize(r.value, offset + 4 + 4 + 4 * index, o)
-          WriteResult(r2.value, offset, byteSize + r.byteSize)
+          WriteResult(writeIntUnsafe(r.value, offset + 4 + 4 + 4 * index, o), offset, byteSize + r.byteSize)
       }
   }
 
@@ -115,10 +114,10 @@ object Formatter extends FormatterInstances {
 
       override def serialize(bytes: Array[Byte], offset: Int, value: A) = {
         val values = gen.to(value).zip(indexes)
-        val bs = writeInt(bytes, offset + 4, lastIndex)
         // [byteSize:int(4)] + [lastIndex:int(4)] + [indexOffset...:int(4 * lastIndex)]
         val initbyteSize = 4 + 4 + ((lastIndex + 1) * 4)
-        val WriteResult(result, _, byteSize) = values.foldLeft(WriteResult(bs, offset, initbyteSize))(writeObject)
+        val WriteResult(bs, _, byteSize) = values.foldLeft(WriteResult(bytes, offset, initbyteSize))(writeObject)
+        val result = writeIntUnsafe(bs, offset + 4, lastIndex)
         LazyResult(writeInt(result, offset, byteSize), byteSize)
       }
 
@@ -203,7 +202,7 @@ object Formatter extends FormatterInstances {
 
       override def serialize(bytes: Array[Byte], offset: Int, value: A) = {
         val values = gen.to(value)
-        values.foldLeft((LazyResult(bytes, 0), offset))(writeEnum)
+        values.foldLeft((LazyResult.strict(bytes, 0), offset))(writeEnum)
           ._1
       }
 

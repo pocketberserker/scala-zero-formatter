@@ -55,15 +55,19 @@ object BinaryUtil {
     bs
   }
 
-  def writeInt(bytes: Array[Byte], offset: Int, value: Int): Array[Byte] = {
+  def writeIntUnsafe(bytes: Array[Byte], offset: Int, value: Int): Array[Byte] = {
     @annotation.tailrec
     def go(bs: Array[Byte], pos: Int, v: Int): Array[Byte] = {
       bs(offset + pos) = v.asInstanceOf[Byte]
       if(pos == 3) bs
       else go(bs, pos + 1, v >>> 8)
     }
-    go(ensureCapacity(bytes, offset, 4), 0, value)
+    go(bytes, 0, value)
   }
+
+  @inline
+  def writeInt(bytes: Array[Byte], offset: Int, value: Int): Array[Byte] =
+    writeIntUnsafe(ensureCapacity(bytes, offset, 4), offset, value)
 
   def writeLong(bytes: Array[Byte], offset: Int, value: Long): Array[Byte] = {
     @annotation.tailrec
@@ -83,7 +87,7 @@ object BinaryUtil {
     bs
   }
 
-  private[this] val intSize = 4
+  private[this] final val intSize = 4
 
   def writeString(bytes: Array[Byte], offset: Int, value: String): LazyResult[Array[Byte]] =
     if(value == null) {
@@ -92,7 +96,7 @@ object BinaryUtil {
     else {
       val strBytes = value.getBytes(StandardCharsets.UTF_8)
       val len = strBytes.length
-      val bs = writeInt(ensureCapacity(bytes, offset, intSize + len), offset, len)
+      val bs = writeIntUnsafe(ensureCapacity(bytes, offset, intSize + len), offset, len)
       cfor(0)(_ < len, _ + 1){ i => bs(offset + intSize + i) = strBytes(i) }
       LazyResult(bs, intSize + len)
     }
