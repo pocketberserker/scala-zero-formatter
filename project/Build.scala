@@ -76,7 +76,7 @@ object Build {
   lazy val catsCore = module("cats-core").settings(
     name := catsCoreName,
     libraryDependencies ++= Seq(
-      "org.typelevel" %% "cats-core" % "0.8.1"
+      "org.typelevel" %% "cats-core" % "0.9.0"
     )
   ).dependsOn(zeroFormatter)
 }
