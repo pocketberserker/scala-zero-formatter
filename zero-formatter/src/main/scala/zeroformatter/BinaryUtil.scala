@@ -27,10 +27,10 @@ object BinaryUtil {
 
     val current = bytes.length
     if(newLength > current) {
-      if(newLength < 256) {
-        resize(bytes, 256)
-      }
-      val num = if(newLength < current * 2) current * 2 else newLength
+      val num =
+        if(newLength < 256) 256
+        else if(newLength < current * 2) current * 2
+        else newLength
       resize(bytes, num)
     }
     else bytes
