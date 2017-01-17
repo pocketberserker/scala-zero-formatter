@@ -3,7 +3,6 @@ package zeroformatter
 import java.nio.ByteBuffer
 import shapeless._
 import shapeless.ops.hlist._
-import Formatter._
 import BinaryUtil._
 
 abstract class Union[K: Formatter] {

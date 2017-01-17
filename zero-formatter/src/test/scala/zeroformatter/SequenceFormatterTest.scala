@@ -1,6 +1,5 @@
 package zeroformatter
 
-import Formatter._
 import dog._
 import scalaz.Equal
 import scalaz.std.anyVal._

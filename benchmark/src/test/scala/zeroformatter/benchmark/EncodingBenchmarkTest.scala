@@ -2,7 +2,6 @@ package zeroformatter.benchmark
 
 import dog._
 import zeroformatter._
-import Formatter._
 
 object EncodingBenchmarkTest extends Base {
   val benchmark: EncodingBenchmark = new EncodingBenchmark

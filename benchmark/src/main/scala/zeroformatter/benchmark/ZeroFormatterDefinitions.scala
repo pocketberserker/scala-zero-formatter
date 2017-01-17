@@ -2,7 +2,6 @@ package zeroformatter.benchmark
 
 import shapeless._
 import zeroformatter._
-import zeroformatter.Formatter._
 import org.openjdk.jmh.annotations._
 
 trait ZeroFormatterFooInstances {

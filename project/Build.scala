@@ -7,6 +7,8 @@ import org.scalajs.sbtplugin.ScalaJSPlugin.autoImport._
 
 object Build {
 
+  private[this] val zeroFormatterCoreName = "zero-formatter-core"
+  private[this] val zeroFormatterMacrosName = "zero-formatter-macros"
   private[this] val zeroFormatterName = "zero-formatter"
   private[this] val scalazName = "zero-formatter-scalaz"
   private[this] val catsCoreName = "zero-formatter-cats-core"
@@ -47,20 +49,29 @@ object Build {
   private[this] val dogVersion = "0.7.0"
   private[this] val catsVersion = "0.8.1"
 
-  lazy val zeroFormatter = module("zero-formatter").settings(
+  lazy val zeroFormatterCore = module("core").settings(
+    name := zeroFormatterCoreName,
+    libraryDependencies ++= Seq(
+      "org.spire-math" %%% "spire" % "0.13.0"
+    )
+  )
+
+  lazy val zeroFormatterMacros = module("macros").settings(
+    name := zeroFormatterMacrosName,
+    libraryDependencies ++= Seq(
+      "org.scala-lang" % "scala-reflect" % scalaVersion.value % "provided",
+      "com.chuusai" %%% "shapeless" % "2.3.2"
+    )
+  ).dependsOn(zeroFormatterCore)
+
+  lazy val zeroFormatter = module(zeroFormatterName).settings(
     name := zeroFormatterName,
     libraryDependencies ++= Seq(
-      "org.spire-math" %%% "spire" % "0.13.0",
-      "com.chuusai" %%% "shapeless" % "2.3.2",
       "com.github.pocketberserker" %%% "dog" % dogVersion % "test",
       "com.github.pocketberserker" %%% "dog-props" % dogVersion % "test"
-    ),
-    libraryDependencies ++= {
-     if (scalaBinaryVersion.value startsWith "2.10")
-       Seq(compilerPlugin("org.scalamacros" % "paradise" % "2.1.0" cross CrossVersion.full))
-     else
-       Nil
-    }
+    )
+  ).dependsOn(
+    zeroFormatterMacros
   ).jsSettings(
     libraryDependencies += "org.scala-js" %%% "scalajs-java-time" % "0.2.0"
   )

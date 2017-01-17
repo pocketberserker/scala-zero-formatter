@@ -1,7 +1,6 @@
 package zeroformatter
 
 import java.time._
-import TimeFormatterInstances._
 import dog._
 
 object TimeFormatterTest extends Base {

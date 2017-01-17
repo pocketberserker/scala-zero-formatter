@@ -5,7 +5,6 @@ import _root_.scalaz._
 import _root_.scalaz.std.anyVal._
 import _root_.scalaz.IList._
 import dog.TestCase
-import Formatter._
 
 object FormatterTest extends Base {
 

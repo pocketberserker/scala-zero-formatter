@@ -1,7 +1,6 @@
 package zeroformatter
 
 import java.time._
-import Formatter._
 import dog._
 import dog.props._
 import scalaprops._

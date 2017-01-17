@@ -2,9 +2,8 @@ package zeroformatter
 
 import java.nio.ByteBuffer
 import java.time._
-import Formatter._
 
-object TimeFormatterInstances {
+abstract class FormatterInstances extends FormatterInstances0 {
 
   implicit val localDateTimeFormatter: Formatter[LocalDateTime] = new Formatter[LocalDateTime] {
     override val length = Some(12)

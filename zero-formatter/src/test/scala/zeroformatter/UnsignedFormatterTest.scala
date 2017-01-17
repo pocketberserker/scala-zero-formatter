@@ -1,7 +1,6 @@
 package zeroformatter
 
 import spire.math._
-import Formatter._
 import dog._
 import scalaz.std.anyVal._
 import scalaz.std.option._

@@ -2,7 +2,6 @@ package zeroformatter
 
 import java.nio.ByteBuffer
 import _root_.scalaz._
-import Formatter._
 
 package object scalaz {
 
