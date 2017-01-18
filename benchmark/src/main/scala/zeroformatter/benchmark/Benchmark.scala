@@ -12,6 +12,7 @@ circe-benchmarks is licensed under the Apache License, Version 2.0 (the "License
 
 package zeroformatter.benchmark
 
+import cats.Eval
 import java.util.concurrent.TimeUnit
 import org.openjdk.jmh.annotations._
 
@@ -22,8 +23,13 @@ class ExampleData extends ZeroFormatterData {
     ("b" * i) -> Foo("a" * i, (i + 2.0) / (i + 1.0), i, i * 1000L, (0 to i).map(_ % 2 == 0).toList)
   }.toMap
 
+  lazy val bars: Map[String, Bar] = List.tabulate(100) { i =>
+    ("b" * i) -> Bar(Eval.now("a" * i), Eval.now((i + 2.0) / (i + 1.0)), Eval.now(i), Eval.now(i * 1000L), Eval.now((0 to i).map(_ % 2 == 0).toList))
+  }.toMap
+
   val intsBytes: Array[Byte] = intsZ
   val foosBytes: Array[Byte] = foosZ
+  val barsBytes: Array[Byte] = barsZ
 }
 
 /**
