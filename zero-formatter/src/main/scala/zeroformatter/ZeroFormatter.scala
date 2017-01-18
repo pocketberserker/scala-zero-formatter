@@ -9,5 +9,5 @@ object ZeroFormatter {
   }
 
   def deserialize[T](bytes: Array[Byte])(implicit F: Formatter[T]): T =
-    F.deserialize(Decoder(BinaryUtil.wrapByteArray(bytes), 0))
+    F.deserialize(ArrayDecoder(bytes, 0))
 }
