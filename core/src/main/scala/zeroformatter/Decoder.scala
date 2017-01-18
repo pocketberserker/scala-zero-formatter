@@ -62,7 +62,7 @@ final case class ArrayDecoder(buf: Array[Byte], private val _offset: Int) extend
   }
 
   override def getLong(o: Int): Long = {
-    (getInt(o).asInstanceOf[Long] & 0xffffffffL) | (getInt(o).asInstanceOf[Long] << 32)
+    (getInt(o).asInstanceOf[Long] & 0xffffffffL) | (getInt(o + 4).asInstanceOf[Long] << 32)
   }
 
   override def getFloat(): Float =
