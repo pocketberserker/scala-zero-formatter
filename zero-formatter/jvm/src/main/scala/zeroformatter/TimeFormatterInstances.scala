@@ -1,6 +1,5 @@
 package zeroformatter
 
-import java.nio.ByteBuffer
 import java.time._
 
 abstract class FormatterInstances extends FormatterInstances0 {
@@ -14,10 +13,10 @@ abstract class FormatterInstances extends FormatterInstances0 {
         12
       )
     }
-    override def deserialize(buf: ByteBuffer, offset: Int) = {
-      val second = longFormatter.deserialize(buf, offset).value
-      val nano = intFormatter.deserialize(buf, offset + 8).value
-      LazyResult(Instant.ofEpochSecond(second, nano).atOffset(ZoneOffset.UTC).toLocalDateTime, 12)
+    override def deserialize(decoder: Decoder) = {
+      val second = longFormatter.deserialize(decoder)
+      val nano = intFormatter.deserialize(decoder)
+      Instant.ofEpochSecond(second, nano).atOffset(ZoneOffset.UTC).toLocalDateTime
     }
   }
 
@@ -28,10 +27,10 @@ abstract class FormatterInstances extends FormatterInstances0 {
     LazyResult(shortFormatter.serialize(bs, offset + 12, offsetMinites).value, 14)
   }
 
-  private[this] def deserializeOffsetDateTime(buf: ByteBuffer, offset: Int): OffsetDateTime = {
-    val second = longFormatter.deserialize(buf, offset).value
-    val nano = intFormatter.deserialize(buf, offset + 8).value
-    val offsetMinites = shortFormatter.deserialize(buf, offset + 12).value.toInt
+  private[this] def deserializeOffsetDateTime(decoder: Decoder): OffsetDateTime = {
+    val second = longFormatter.deserialize(decoder)
+    val nano = intFormatter.deserialize(decoder)
+    val offsetMinites = shortFormatter.deserialize(decoder).toInt
     Instant.ofEpochSecond(second, nano).atOffset(ZoneOffset.ofTotalSeconds(offsetMinites * 60))
   }
 
@@ -39,8 +38,8 @@ abstract class FormatterInstances extends FormatterInstances0 {
     override val length = Some(14)
     override def serialize(bytes: Array[Byte], offset: Int, value: OffsetDateTime) =
       serializeOffsetDateTime(bytes, offset, value)
-    override def deserialize(buf: ByteBuffer, offset: Int) = {
-      LazyResult(deserializeOffsetDateTime(buf, offset), 14)
+    override def deserialize(decoder: Decoder) = {
+      deserializeOffsetDateTime(decoder)
     }
   }
 

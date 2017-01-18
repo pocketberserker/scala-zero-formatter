@@ -1,6 +1,5 @@
 package zeroformatter
 
-import java.nio.ByteBuffer
 import shapeless._
 import shapeless.ops.hlist._
 
@@ -17,10 +16,14 @@ abstract class Enum[
   def serialize(bytes: Array[Byte], offset: Int): LazyResult[Array[Byte]] =
     formatter.serialize(bytes, offset, label)
 
-  def check(buf: ByteBuffer, offset: Int): Option[Int] = {
-    val r = formatter.deserialize(buf, offset)
-    if(r.value == label) Some(r.byteSize)
-    else None
+  def check(decoder: Decoder): Boolean = {
+    val o = decoder.offset
+    val r = formatter.deserialize(decoder)
+    if(r == label) true
+    else {
+      decoder.offset = o
+      false
+    }
   }
 }
 
@@ -51,19 +54,16 @@ object Enum {
       }
   }
 
-  private[this] case class ReadEnumResult[T](buf: ByteBuffer, offset: Int, value: Option[T])
+  private[this] case class ReadEnumResult[T](decoder: Decoder, value: Option[T])
 
   private[this] object readEnum extends Poly2 {
     implicit def read[V <: Enum[_], U <: Enum[_]] =
-      at[ReadEnumResult[LazyResult[U]], V] {
+      at[ReadEnumResult[U], V] {
         case (acc, f) => acc.value match {
           case Some(_) => acc
-          case None =>
-            f.check(acc.buf, acc.offset) match {
-              case Some(byteSize) =>
-                acc.copy(value = Some(LazyResult(f.asInstanceOf[U], byteSize)))
-              case None => acc
-            }
+          case None if f.check(acc.decoder) =>
+            acc.copy(value = Some(f.asInstanceOf[U]))
+          case None => acc
         }
       }
   }
@@ -80,7 +80,7 @@ object Enum {
     // serialize
     write: ops.coproduct.LeftFolder.Aux[B, (LazyResult[Array[Byte]], Int), writeEnum.type, (LazyResult[Array[Byte]], Int)],
     // deserialize
-    read: LeftFolder.Aux[E, ReadEnumResult[LazyResult[A]], readEnum.type, ReadEnumResult[LazyResult[A]]]
+    read: LeftFolder.Aux[E, ReadEnumResult[A], readEnum.type, ReadEnumResult[A]]
   ): Formatter[A] = {
 
     val fs =
@@ -98,10 +98,10 @@ object Enum {
           ._1
       }
 
-      override def deserialize(buf: ByteBuffer, offset: Int) = {
-        fs.foldLeft(ReadEnumResult(buf, offset, None: Option[LazyResult[A]]))(readEnum)
+      override def deserialize(decoder: Decoder) = {
+        fs.foldLeft(ReadEnumResult(decoder, None: Option[A]))(readEnum)
           .value
-          .getOrElse(throw FormatException(offset, "EnumFormatter could not deserialize Enum label."))
+          .getOrElse(throw FormatException(decoder.offset, "EnumFormatter could not deserialize Enum label."))
       }
     }
   }

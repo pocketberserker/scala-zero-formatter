@@ -1,6 +1,5 @@
 package zeroformatter
 
-import java.nio.ByteBuffer
 import _root_.scalaz._
 
 package object scalaz {
@@ -33,21 +32,18 @@ package object scalaz {
         }
       }
 
-    override def deserialize(buf: ByteBuffer, offset: Int) = {
-      val length = intFormatter.deserialize(buf, offset).value
-      if(length == -1) LazyResult(null, 4)
-      else if(length < -1) throw FormatException(offset, "Invalid List length.")
+    override def deserialize(decoder: Decoder) = {
+      val length = intFormatter.deserialize(decoder)
+      if(length == -1) null
+      else if(length < -1) throw FormatException(decoder.offset, "Invalid List length.")
       else {
         var list: IList[A] = IList.empty
-        var byteSize = 4
         var i = 0
         while(i < length) {
-          val r = F.deserialize(buf, offset + byteSize)
-          list ::= r.value
-          byteSize += r.byteSize
+          list ::= F.deserialize(decoder)
           i += 1
         }
-        LazyResult.strict(list.reverse, byteSize)
+        list.reverse
       }
     }
   }

@@ -101,16 +101,14 @@ object BinaryUtil {
       LazyResult(bs, intSize + len)
     }
 
-  def readString(buf: ByteBuffer, offset: Int): LazyResult[String] = {
-    val len = buf.getInt(offset)
-    if(len == -1) {
-      LazyResult(null, intSize)
-    }
-    else if(len < -1) throw FormatException(offset, "Invalid string length.")
+  def readString(decoder: Decoder): String = {
+    val len = decoder.getInt()
+    if(len == -1) null
+    else if(len < -1) throw FormatException(decoder.offset, "Invalid string length.")
     else {
       val bytes = new Array[Byte](len)
-      cfor(0)(_ < len, _ + 1){ i => bytes(i) = buf.get(offset + intSize + i) }
-      LazyResult(new String(bytes, StandardCharsets.UTF_8), intSize + len)
+      cfor(0)(_ < len, _ + 1){ i => bytes(i) = decoder.getByte() }
+      new String(bytes, StandardCharsets.UTF_8)
     }
   }
 }

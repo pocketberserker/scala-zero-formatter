@@ -1,6 +1,5 @@
 package zeroformatter
 
-import java.nio.ByteBuffer
 import _root_.cats._
 import _root_.cats.functor._
 
@@ -18,8 +17,8 @@ package object cats {
     override def length = F.length
     override def serialize(bytes: Array[Byte], offset: Int, v: Eval[T]) =
       F.serialize(bytes, offset, v.value)
-    override def deserialize(buf: ByteBuffer, offset: Int) =
-      F.deserialize(buf, offset).map(v => Eval.later(v))
+    override def deserialize(decoder: Decoder) =
+      Eval.later(F.deserialize(decoder))
   }
 
   object ZeroFormatter {

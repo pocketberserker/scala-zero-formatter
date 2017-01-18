@@ -1,6 +1,5 @@
 package zeroformatter
 
-import java.nio.ByteBuffer
 import shapeless._
 
 private[zeroformatter] object zero extends Poly0 {
@@ -20,7 +19,7 @@ private[zeroformatter] object ObjectFormatterHelper {
       at[T, U]((_, acc) => F :: acc)
   }
 
-  case class ReadObjectResult[T <: HList](buf: ByteBuffer, offset: Int, lastIndex: Int, value: T)
+  case class ReadObjectResult[T <: HList](decoder: Decoder, initOffset: Int, lastIndex: Int, value: T)
 
   object readObject extends Poly2 {
     implicit def read[T, U <: HList] =
@@ -29,9 +28,12 @@ private[zeroformatter] object ObjectFormatterHelper {
           val v =
             if(index > acc.lastIndex) formatter.default
             else {
-              val o = intFormatter.deserialize(acc.buf, acc.offset + 4 + 4 + 4 * index).value
+              val o = acc.decoder.getInt(acc.initOffset + 4 + 4 + 4 * index)
               if(o == 0) formatter.default
-              else formatter.deserialize(acc.buf, o).value
+              else {
+                acc.decoder.offset = o
+                formatter.deserialize(acc.decoder)
+              }
             }
           acc.copy(value = v :: acc.value)
       }

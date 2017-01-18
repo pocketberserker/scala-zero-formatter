@@ -1,4 +1,3 @@
-import java.nio.ByteBuffer
 import shapeless._
 import shapeless.ops.hlist._
 
@@ -45,14 +44,16 @@ package object zeroformatter extends FormatterInstances {
         LazyResult(writeInt(result, offset, byteSize), byteSize)
       }
 
-      override def deserialize(buf: ByteBuffer, offset: Int) = {
-        val byteSize = intFormatter.deserialize(buf, offset).value
-        if(byteSize == -1) LazyResult(null.asInstanceOf[A], byteSize)
-        else if(byteSize < -1) throw FormatException(offset, "Invalid byte size.")
+      override def deserialize(decoder: Decoder) = {
+        val byteSize = decoder.getInt()
+        if(byteSize == -1) null.asInstanceOf[A]
+        else if(byteSize < -1) throw FormatException(decoder.offset, "Invalid byte size.")
         else {
-          val li = buf.getInt(offset + 4)
-          val result = formattersWithIndex.foldRight(ReadObjectResult(buf, offset, li, HNil: HNil))(readObject)
-          LazyResult(gen.from(result.value), byteSize)
+          val o = decoder.offset - 4
+          val li = decoder.getInt()
+          val result = formattersWithIndex.foldRight(ReadObjectResult(decoder, o, li, HNil: HNil))(readObject)
+          decoder.offset = o + byteSize
+          gen.from(result.value)
         }
       }
     }

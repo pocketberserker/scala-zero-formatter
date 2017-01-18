@@ -1,6 +1,5 @@
 package zeroformatter
 
-import java.nio.ByteBuffer
 import shapeless._
 import shapeless.ops.hlist._
 import ObjectFormatterHelper._
@@ -9,14 +8,13 @@ trait Struct
 
 object Struct {
 
-  private[this] case class ReadStructResult[T <: HList](buf: ByteBuffer, offset: Int, value: T, byteSize: Int)
+  private[this] case class ReadStructResult[T <: HList](decoder: Decoder, value: T)
 
   private[this] object readStruct extends Poly2 {
     implicit def read[T, U <: HList] =
       at[ReadStructResult[U], Formatter[T]] {
         case (acc, formatter) =>
-          val v = formatter.deserialize(acc.buf, acc.offset + acc.byteSize)
-          acc.copy(value = v.value :: acc.value, byteSize = acc.byteSize + v.byteSize)
+          acc.copy(value = formatter.deserialize(acc.decoder) :: acc.value)
       }
   }
 
@@ -47,11 +45,8 @@ object Struct {
         LazyResult(result, byteSize)
       }
 
-      override def deserialize(buf: ByteBuffer, offset: Int) = {
-        val result =
-          formatters.foldLeft(ReadStructResult(buf, offset, HNil: HNil, 0))(readStruct)
-        LazyResult(gen.from(result.value.reverse), result.byteSize)
-      }
+      override def deserialize(decoder: Decoder) =
+        gen.from(formatters.foldLeft(ReadStructResult(decoder, HNil: HNil))(readStruct).value.reverse)
     }
   }
 }

@@ -1,6 +1,5 @@
 package zeroformatter
 
-import java.nio.ByteBuffer
 import shapeless._
 import shapeless.ops.hlist._
 import BinaryUtil._
@@ -12,10 +11,14 @@ abstract class Union[K: Formatter] {
   def serializeKey(bytes: Array[Byte], offset: Int): LazyResult[Array[Byte]] =
     implicitly[Formatter[K]].serialize(bytes, offset, key)
 
-  def checkKey(buf: ByteBuffer, offset: Int): Option[Int] = {
-    val r = implicitly[Formatter[K]].deserialize(buf, offset)
-    if(r.value == key) Some(r.byteSize)
-    else None
+  def checkKey(decoder: Decoder): Boolean = {
+    val o = decoder.offset
+    val r = implicitly[Formatter[K]].deserialize(decoder)
+    if(r == key) true
+    else {
+      decoder.offset = o
+      false
+    }
   }
 }
 
@@ -49,19 +52,17 @@ object Union {
       }
   }
 
-  private[this] case class ReadUnionResult[T](buf: ByteBuffer, offset: Int, value: Option[T])
+  private[this] case class ReadUnionResult[T](decoder: Decoder, value: Option[T])
 
   private[this] object readUnion extends Poly2 {
     implicit def read[V <: Union[_], U <: Union[_]] =
       at[ReadUnionResult[U], (V, Formatter[V])] {
         case (acc, (kf, vf)) => acc.value match {
           case Some(_) => acc
-          case None => kf.checkKey(acc.buf, acc.offset) match {
-            case Some(keyByteSize) =>
-              val v = vf.deserialize(acc.buf, acc.offset + keyByteSize)
-              acc.copy(value = Some(v.value.asInstanceOf[U]))
-            case None => acc
-          }
+          case None if kf.checkKey(acc.decoder) =>
+            val v = vf.deserialize(acc.decoder)
+            acc.copy(value = Some(v.asInstanceOf[U]))
+          case None => acc
         }
       }
   }
@@ -96,13 +97,13 @@ object Union {
         LazyResult(writeInt(result, offset, byteSize), byteSize)
       }
 
-      override def deserialize(buf: ByteBuffer, offset: Int) = {
-        val byteSize = intFormatter.deserialize(buf, offset).value
-        if(byteSize == -1) LazyResult(null.asInstanceOf[A], byteSize)
-        else if(byteSize < -1) throw FormatException(offset, "Invalid byte size.")
+      override def deserialize(decoder: Decoder) = {
+        val byteSize = decoder.getInt()
+        if(byteSize == -1) null.asInstanceOf[A]
+        else if(byteSize < -1) throw FormatException(decoder.offset, "Invalid byte size.")
         else {
-          val result = fs.foldLeft(ReadUnionResult(buf, offset + 4, None: Option[A]))(readUnion)
-          LazyResult(result.value.getOrElse(throw FormatException(offset, "Union key does not find.")), byteSize)
+          val result = fs.foldLeft(ReadUnionResult(decoder, None: Option[A]))(readUnion)
+          result.value.getOrElse(throw FormatException(decoder.offset, "Union key does not find."))
         }
       }
     }
