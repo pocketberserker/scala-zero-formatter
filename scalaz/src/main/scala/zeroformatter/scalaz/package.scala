@@ -47,13 +47,4 @@ package object scalaz {
       }
     }
   }
-
-  object ZeroFormatter {
-
-    def serialize[T: Formatter](value: T): Throwable \/ Array[Byte] =
-      \/.fromTryCatchNonFatal(zeroformatter.ZeroFormatter.serialize[T](value))
-
-    def deserialize[T: Formatter](value: Array[Byte]): Throwable \/ T =
-      \/.fromTryCatchNonFatal(zeroformatter.ZeroFormatter.deserialize[T](value))
-  }
 }

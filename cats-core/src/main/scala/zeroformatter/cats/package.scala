@@ -20,13 +20,4 @@ package object cats {
     override def deserialize(decoder: Decoder) =
       Eval.later(F.deserialize(decoder))
   }
-
-  object ZeroFormatter {
-
-    def serialize[T: Formatter](value: T): Array[Byte] =
-      zeroformatter.ZeroFormatter.serialize[T](value)
-
-    def deserialize[T: Formatter](bytes: Array[Byte]): Eval[T] =
-      Eval.later(zeroformatter.ZeroFormatter.deserialize[T](bytes))
-  }
 }
