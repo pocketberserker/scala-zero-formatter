@@ -20,10 +20,6 @@ package object cats {
     override def deserialize(decoder: Decoder) = {
       val d = decoder.newOffset(decoder.offset)
       Eval.later(F.deserialize(d))
-        .map { v =>
-          decoder.offset = d.offset
-          v
-        }
     }
   }
 }
