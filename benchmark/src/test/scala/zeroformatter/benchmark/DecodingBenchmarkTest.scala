@@ -9,7 +9,7 @@ object DecodingBenchmarkTest extends Base {
   import benchmark._
 
   val `correctly decode integers` = TestCase {
-    assert(decodeIntsZ == ints)
+    assert(decodeListIntsZ == listInts)
   }
 
   val `correctly decode case classes` = TestCase {

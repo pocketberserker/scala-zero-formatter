@@ -235,6 +235,46 @@ abstract class FormatterInstances2 {
       }
     }
   }
+
+  implicit def vectorFormatter[T](implicit F: Formatter[T]): Formatter[Vector[T]] = new Formatter[Vector[T]] {
+    override val length = None
+
+    override def serialize(bytes: Array[Byte], offset: Int, value: Vector[T]) =
+      if(value == null) {
+        intFormatter.serialize(bytes, offset, -1)
+      }
+      else {
+        val length = value.length
+        var bs = F.length.map(l => ensureCapacity(bytes, offset, 4 + l * length)).getOrElse(bytes)
+
+
+        val lr = intFormatter.serialize(bs, offset, length)
+        bs = lr.value
+
+        var byteSize = lr.byteSize
+        value.foreach { v =>
+          val r = F.serialize(bs, offset + byteSize, v)
+          bs = r.value
+          byteSize += r.byteSize
+        }
+        LazyResult.strict(bs, byteSize)
+      }
+
+    override def deserialize(decoder: Decoder) = {
+      val length = intFormatter.deserialize(decoder)
+      if(length == -1) null
+      else if(length < -1) throw FormatException(decoder.offset, "Invalid Array length.")
+      else {
+        val builder = Vector.newBuilder[T]
+        var i = 0
+        while(i < length) {
+          builder += F.deserialize(decoder)
+          i += 1
+        }
+        builder.result()
+      }
+    }
+  }
 }
 
 abstract class FormatterInstances1 extends FormatterInstances2 {

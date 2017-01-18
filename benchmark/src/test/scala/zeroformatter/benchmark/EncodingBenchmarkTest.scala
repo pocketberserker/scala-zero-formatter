@@ -9,7 +9,7 @@ object EncodingBenchmarkTest extends Base {
   import benchmark._
 
   val `correctly encode integers` = TestCase {
-    assert(ZeroFormatter.deserialize[List[Int]](encodeIntsZ) == ints)
+    assert(ZeroFormatter.deserialize[List[Int]](encodeListIntsZ) == listInts)
   }
 
   val `correctly encode case classes` = TestCase {

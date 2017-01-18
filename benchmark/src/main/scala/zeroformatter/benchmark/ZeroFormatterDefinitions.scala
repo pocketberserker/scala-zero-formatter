@@ -19,7 +19,8 @@ trait ZeroFormatterData { self: ExampleData =>
 
   val foosZ: Array[Byte] = encodeZ(foos)
   val barsZ: Array[Byte] = encodeZ(bars)
-  val intsZ: Array[Byte] = encodeZ(ints)
+  val listIntsZ: Array[Byte] = encodeZ(listInts)
+  val vecIntsZ: Array[Byte] = encodeZ(vecInts)
 }
 
 trait ZeroFormatterEncoding { self: ExampleData =>
@@ -30,7 +31,10 @@ trait ZeroFormatterEncoding { self: ExampleData =>
   def encodeBarsZ: Array[Byte] = encodeZ(bars)
 
   @Benchmark
-  def encodeIntsZ: Array[Byte] = encodeZ(ints)
+  def encodeListIntsZ: Array[Byte] = encodeZ(listInts)
+
+  @Benchmark
+  def encodeVectorIntsZ: Array[Byte] = encodeZ(vecInts)
 }
 
 trait ZeroFormatterDecoding { self: ExampleData =>
@@ -41,5 +45,8 @@ trait ZeroFormatterDecoding { self: ExampleData =>
   def decodeBarsZ: Map[String, Bar] = ZeroFormatter.deserialize[Map[String, Bar]](barsZ)
 
   @Benchmark
-  def decodeIntsZ: List[Int] = ZeroFormatter.deserialize[List[Int]](intsZ)
+  def decodeListIntsZ: List[Int] = ZeroFormatter.deserialize[List[Int]](listIntsZ)
+
+  @Benchmark
+  def decodeVectorIntsZ: Vector[Int] = ZeroFormatter.deserialize[Vector[Int]](vecIntsZ)
 }

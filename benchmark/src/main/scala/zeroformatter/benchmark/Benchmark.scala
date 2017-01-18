@@ -7,6 +7,7 @@ circe-benchmarks is licensed under the Apache License, Version 2.0 (the "License
 * change log
   * change benchmark target
   * delete printing and parsing benchmarks
+  * add more data
 
 */
 
@@ -17,7 +18,8 @@ import java.util.concurrent.TimeUnit
 import org.openjdk.jmh.annotations._
 
 class ExampleData extends ZeroFormatterData {
-  lazy val ints: List[Int] = (0 to 1000).toList
+  lazy val listInts: List[Int] = (0 to 1000).toList
+  lazy val vecInts: Vector[Int] = (0 to 1000).toVector
 
   lazy val foos: Map[String, Foo] = List.tabulate(100) { i =>
     ("b" * i) -> Foo("a" * i, (i + 2.0) / (i + 1.0), i, i * 1000L, (0 to i).map(_ % 2 == 0).toList)
@@ -27,7 +29,8 @@ class ExampleData extends ZeroFormatterData {
     ("b" * i) -> Bar(Eval.now("a" * i), Eval.now((i + 2.0) / (i + 1.0)), Eval.now(i), Eval.now(i * 1000L), Eval.now((0 to i).map(_ % 2 == 0).toList))
   }.toMap
 
-  val intsBytes: Array[Byte] = intsZ
+  val listIntsBytes: Array[Byte] = listIntsZ
+  val vecIntsBytes: Array[Byte] = vecIntsZ
   val foosBytes: Array[Byte] = foosZ
   val barsBytes: Array[Byte] = barsZ
 }
