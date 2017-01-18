@@ -25,5 +25,6 @@ abstract class Formatter[T] extends ZeroFormattable { self =>
 
 object Formatter {
 
+  @inline
   def apply[T](implicit F: Formatter[T]): Formatter[T] = F
 }
