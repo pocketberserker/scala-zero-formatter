@@ -64,7 +64,7 @@ class ObjectSerializerMacros(val c: whitebox.Context) extends CaseClassMacros {
 
       q"""
         new $ObjectSerializer[$tpe] {
-          def serialize(acc: $ObjectSerializerResult, value: $tpe) = {
+          override def serialize(acc: $ObjectSerializerResult, value: $tpe) = {
             $serializeImpl
           }
         }
