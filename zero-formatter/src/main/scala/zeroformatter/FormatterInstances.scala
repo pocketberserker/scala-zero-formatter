@@ -234,12 +234,20 @@ abstract class FormatterInstances2 {
         }
 
       override def deserialize(buf: ByteBuffer, offset: Int) = {
-        val length = intFormatter.deserialize(buf, offset).value
+        val length = buf.getInt(offset)
         if(length == -1) LazyResult(null, 4)
         else if(length < -1) throw FormatException(offset, "Invalid Map length.")
-        else (0 to length - 1).foldLeft(LazyResult(Map[K, V](), 4)){ case (res, _) =>
-          val r = F.deserialize(buf, offset + res.byteSize)
-          LazyResult.strict(res.value + r.value, res.byteSize + r.byteSize)
+        else {
+          var i = 0
+          var byteSize = 4
+          val builder = Map.newBuilder[K, V]
+          while(i < length) {
+            val r = F.deserialize(buf, offset + byteSize)
+            builder += r.value
+            byteSize += r.byteSize
+            i += 1
+          }
+          LazyResult.strict(builder.result(), byteSize)
         }
       }
     }
