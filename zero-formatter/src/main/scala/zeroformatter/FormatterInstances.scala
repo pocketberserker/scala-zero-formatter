@@ -171,13 +171,13 @@ abstract class FormatterInstances2 {
       if(length == -1) null
       else if(length < -1) throw FormatException(decoder.offset, "Invalid List length.")
       else {
-        var list: List[A] = Nil
+        val list = scala.collection.mutable.ListBuffer[A]()
         var i = 0
         while(i < length) {
-          list ::= F.deserialize(decoder)
+          list += F.deserialize(decoder)
           i += 1
         }
-        list.reverse
+        list.toList
       }
     }
   }
