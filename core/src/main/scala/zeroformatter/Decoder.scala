@@ -15,9 +15,10 @@ abstract class Decoder(var offset: Int) {
   def getFloat(): Float
   def getDouble(): Double
   def getChar(): Char
+  def newOffset(o: Int): Decoder
 }
 
-final case class ArrayDecoder(buf: Array[Byte], _offset: Int) extends Decoder(_offset) {
+final case class ArrayDecoder(buf: Array[Byte], private val _offset: Int) extends Decoder(_offset) {
 
   override def getByte(): Byte = {
     offset += 1
@@ -76,9 +77,11 @@ final case class ArrayDecoder(buf: Array[Byte], _offset: Int) extends Decoder(_o
     val v2 = buf(offset - 1) << 8
     (v1 | v2).toChar
   }
+
+  override def newOffset(o: Int) = this.copy(_offset = o)
 }
 
-final case class BufferDecoder(buf: ByteBuffer, _offset: Int) extends Decoder(_offset) {
+final case class BufferDecoder(buf: ByteBuffer, private val _offset: Int) extends Decoder(_offset) {
 
   override def getByte(): Byte = {
     offset += 1
@@ -122,4 +125,6 @@ final case class BufferDecoder(buf: ByteBuffer, _offset: Int) extends Decoder(_o
     offset += 2
     buf.getChar(offset - 2)
   }
+
+  override def newOffset(o: Int) = this.copy(_offset = o)
 }
