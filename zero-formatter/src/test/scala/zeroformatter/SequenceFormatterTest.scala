@@ -8,7 +8,7 @@ import scalaz.std.option._
 import scalaz.std.list._
 import scalaz.std.map._
 
-object ArrayFormatterTest extends Base {
+object SequenceFormatterTest extends Base {
 
   val `serialize Array[Int]` = TestCase {
     val value = Array(0, 1, 2, 3)

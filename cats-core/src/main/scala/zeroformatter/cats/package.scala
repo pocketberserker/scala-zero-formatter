@@ -18,4 +18,7 @@ package object cats {
       Eval.later(F.deserialize(d))
     }
   }
+
+  implicit def lazyListFormatter[A: Formatter]: Formatter[LazyList[Eval, A]] =
+    LazyList.lazyListFormatter
 }

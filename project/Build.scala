@@ -89,5 +89,5 @@ object Build {
     libraryDependencies ++= Seq(
       "org.typelevel" %% "cats-core" % "0.9.0"
     )
-  ).dependsOn(zeroFormatter)
+  ).dependsOn(zeroFormatter % "test->test;compile->compile")
 }

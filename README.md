@@ -4,7 +4,7 @@
 
 implementation of [ZeroFormatter](https://github.com/neuecc/ZeroFormatter) in Scala.
 
-## Supported types (Stage1 only)
+## Supported types
 
 see also [WireFormat Specification](https://github.com/neuecc/ZeroFormatter/tree/1.5.7#wireformat-specification).
 
@@ -55,8 +55,8 @@ see also [WireFormat Specification](https://github.com/neuecc/ZeroFormatter/tree
 
 | Scala | C# | Note |
 | ---- | ---- | --- |
-| | FixedSizeList | |
-| | VariableSizeList | |
+| `LazyList` | FixedSizeList | Stage2 support only `zeroformatter-cats-core` module |
+| `LazyList` | VariableSizeList | Stage2 support only `zeroformatter-cats-core` module |
 
 ### Object Format
 
