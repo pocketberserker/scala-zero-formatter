@@ -155,10 +155,8 @@ abstract class FormatterInstances2 {
             }
           )
 
-        var x = value
-        while(x ne Nil) {
-          byteSize += F.serialize(encoder, offset + byteSize, x.head)
-          x = x.tail
+        value.foreach { v =>
+          byteSize += F.serialize(encoder, offset + byteSize, v)
         }
         byteSize
       }
