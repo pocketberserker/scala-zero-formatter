@@ -2,6 +2,7 @@ package zeroformatter
 
 import shapeless._
 import shapeless.ops.hlist._
+import FormatterHelper._
 
 abstract class Union[K: Formatter] {
 

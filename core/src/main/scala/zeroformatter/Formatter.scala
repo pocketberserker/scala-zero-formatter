@@ -27,4 +27,30 @@ object Formatter {
 
   @inline
   def apply[T](implicit F: Formatter[T]): Formatter[T] = F
+
+  def serializeObjectField[T](encoder: Encoder, offset: Int, byteSize: Int, value: T, index: Int)(implicit F: Formatter[T]): Int = {
+    val o = offset + byteSize
+    val r = F.serialize(encoder, o, value)
+    encoder.writeIntUnsafe(offset + 4 + 4 + 4 * index, o)
+    byteSize + r
+  }
+
+  def serializeStructField[T](encoder: Encoder, offset: Int, byteSize: Int, value: T)(implicit F: Formatter[T]): Int = {
+    byteSize + F.serialize(encoder, offset + byteSize, value)
+  }
+
+  def deserializeObjectField[T](decoder: Decoder, offset: Int, lastIndex: Int, index: Int, formatter: Formatter[T]): T =
+    if(index > lastIndex) formatter.default
+    else {
+      val o = decoder.getInt(offset + 4 + 4 + 4 * index)
+      if(o == 0) formatter.default
+      else {
+        decoder.offset = o
+        formatter.deserialize(decoder)
+      }
+    }
+
+  @inline
+  def deserializeStructField[T](decoder: Decoder, formatter: Formatter[T]): T =
+    formatter.deserialize(decoder)
 }

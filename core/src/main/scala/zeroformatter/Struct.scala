@@ -1,0 +1,3 @@
+package zeroformatter
+
+trait Struct
