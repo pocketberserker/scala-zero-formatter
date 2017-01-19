@@ -13,8 +13,8 @@ abstract class Enum[
 
   override val length: Option[Int] = formatter.length
 
-  def serialize(bytes: Array[Byte], offset: Int): LazyResult[Array[Byte]] =
-    formatter.serialize(bytes, offset, label)
+  def serialize(encoder: Encoder, offset: Int): Int =
+    formatter.serialize(encoder, offset, label)
 
   def check(decoder: Decoder): Boolean = {
     val o = decoder.offset
@@ -31,9 +31,9 @@ object Enum {
 
   private[this] object writeEnum extends Poly2 {
     implicit def default[T <: Enum[_]] =
-      at[(LazyResult[Array[Byte]], Int), T] {
-        case ((result, offset), value) =>
-          (value.serialize(result.value, offset), offset)
+      at[ObjectSerializerResult, T] {
+        case (acc, value) =>
+          acc.copy(byteSize = acc.byteSize + value.serialize(acc.encoder, acc.offset))
       }
   }
 
@@ -78,7 +78,7 @@ object Enum {
     generator: RightFolder.Aux[D, EnumFormatterResult[B, HNil], genEnumFormatter.type, EnumFormatterResult[B, E]],
     isHCons: IsHCons.Aux[E, F, G],
     // serialize
-    write: ops.coproduct.LeftFolder.Aux[B, (LazyResult[Array[Byte]], Int), writeEnum.type, (LazyResult[Array[Byte]], Int)],
+    write: ops.coproduct.LeftFolder.Aux[B, ObjectSerializerResult, writeEnum.type, ObjectSerializerResult],
     // deserialize
     read: LeftFolder.Aux[E, ReadEnumResult[A], readEnum.type, ReadEnumResult[A]]
   ): Formatter[A] = {
@@ -92,10 +92,10 @@ object Enum {
 
       override val length = fs.head.length
 
-      override def serialize(bytes: Array[Byte], offset: Int, value: A) = {
+      override def serialize(encoder: Encoder, offset: Int, value: A) = {
         val values = gen.to(value)
-        values.foldLeft((LazyResult.strict(bytes, 0), offset))(writeEnum)
-          ._1
+        values.foldLeft(ObjectSerializerResult(encoder, offset, 0))(writeEnum)
+          .byteSize
       }
 
       override def deserialize(decoder: Decoder) = {

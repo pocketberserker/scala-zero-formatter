@@ -1,6 +1,8 @@
 package zeroformatter
 
 import java.nio.ByteBuffer
+import java.nio.charset.StandardCharsets
+import spire.syntax.cfor._
 
 abstract class Decoder(var offset: Int) {
 
@@ -16,6 +18,17 @@ abstract class Decoder(var offset: Int) {
   def getDouble(): Double
   def getChar(): Char
   def newOffset(o: Int): Decoder
+
+  def getString(): String = {
+    val len = getInt()
+    if(len == -1) null
+    else if(len < -1) throw FormatException(offset, "Invalid string length.")
+    else {
+      val bytes = new Array[Byte](len)
+      cfor(0)(_ < len, _ + 1){ i => bytes(i) = getByte() }
+      new String(bytes, StandardCharsets.UTF_8)
+    }
+  }
 }
 
 final case class ArrayDecoder(buf: Array[Byte], private val _offset: Int) extends Decoder(_offset) {
@@ -29,9 +42,7 @@ final case class ArrayDecoder(buf: Array[Byte], private val _offset: Int) extend
 
   override def getShort(): Short = {
     offset += 2
-    val v1 = (buf(offset - 2) & 0xff).asInstanceOf[Int]
-    val v2 = buf(offset - 1) << 8
-    (v1 | v2).asInstanceOf[Short]
+    getShort(offset - 2)
   }
 
   override def getShort(o: Int): Short = {
@@ -41,12 +52,8 @@ final case class ArrayDecoder(buf: Array[Byte], private val _offset: Int) extend
   }
 
   override def getInt(): Int = {
-    val v1 = (buf(offset) & 0xff).asInstanceOf[Int]
-    val v2 = (buf(offset + 1) & 0xff) << 8
-    val v3 = (buf(offset + 2) & 0xff) << 16
-    val v4 = buf(offset + 3) << 24
     offset += 4
-    v1 | v2 | v3 | v4
+    getInt(offset - 4)
   }
 
   override def getInt(o: Int): Int = {
@@ -54,11 +61,12 @@ final case class ArrayDecoder(buf: Array[Byte], private val _offset: Int) extend
     val v2 = (buf(o + 1) & 0xff) << 8
     val v3 = (buf(o + 2) & 0xff) << 16
     val v4 = buf(o + 3) << 24
-    v1 + v2 + v3 + v4
+    v1 | v2 | v3 | v4
   }
 
   override def getLong(): Long = {
-    (getInt().asInstanceOf[Long] & 0xffffffffL) | (getInt().asInstanceOf[Long] << 32)
+    offset += 8
+    getLong(offset - 8)
   }
 
   override def getLong(o: Int): Long = {

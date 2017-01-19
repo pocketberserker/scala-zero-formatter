@@ -5,7 +5,7 @@ import scala.reflect.macros.whitebox
 import shapeless.CaseClassMacros
 
 trait ObjectSerializer[A] extends Serializable {
-  def serialize(acc: ObjectSerializerResult, value: A): ObjectSerializerResult
+  def serialize(encoder: Encoder, offset: Int, byteSize: Int, value: A): Int
 }
 
 object ObjectSerializer {
@@ -22,7 +22,7 @@ class ObjectSerializerMacros(val c: whitebox.Context) extends CaseClassMacros {
     val tpe = weakTypeOf[A]
     val Index = typeOf[Index]
     val ObjectSerializer = symbolOf[ObjectSerializer[_]]
-    val ObjectSerializerResult = symbolOf[ObjectSerializerResult]
+    val Encoder = symbolOf[Encoder]
 
     val construct0: List[Tree] => Tree =
       args => q"${companionRef(Index)}(..$args)"
@@ -50,21 +50,21 @@ class ObjectSerializerMacros(val c: whitebox.Context) extends CaseClassMacros {
             .collect {
               case Some((name, annTree)) => (name, q"$annTree.value")
            }
-        val acc = c.Expr[ObjectSerializerResult](Ident(TermName("acc"))).tree
+        val acc = c.Expr[ObjectSerializerResult](Ident(TermName("byteSize"))).tree
         if(indexes.nonEmpty) indexes.foldLeft(acc){ case (a, (n, i)) =>
-        q"_root_.zeroformatter.SerializeHelper.serializeObjectField($a, value.${TermName(n)}, $i)"
+        q"_root_.zeroformatter.SerializeHelper.serializeObjectField(encoder, offset, $a, value.${TermName(n)}, $i)"
         }
         else
           fields.map { case (name, _) => name.decodedName.toString }
             .foldLeft(acc){ case (a, n) =>
-              q"_root_.zeroformatter.SerializeHelper.serializeStructField($a, value.${TermName(n)})"
+              q"_root_.zeroformatter.SerializeHelper.serializeStructField(encoder, offset, $a, value.${TermName(n)})"
             }
       }
       else abort(s"$tpe is not case class")
 
       q"""
         new $ObjectSerializer[$tpe] {
-          override def serialize(acc: $ObjectSerializerResult, value: $tpe) = {
+          override def serialize(encoder: $Encoder, offset: Int, byteSize: Int, value: $tpe) = {
             $serializeImpl
           }
         }

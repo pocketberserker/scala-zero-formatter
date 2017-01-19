@@ -8,27 +8,26 @@ package object scalaz {
     override def xmap[A, B](fa: Formatter[A], f: A => B, g: B => A) = fa.xmap(f, g)
   }
 
-  implicit val lazyResultFunctor: Functor[LazyResult] = new Functor[LazyResult] {
-    override def map[A, B](fa: LazyResult[A])(f: A => B) = fa.map(a => f(a))
-  }
-
   implicit def maybeFormatter[T: Formatter]: Formatter[Maybe[T]] =
     Formatter[Option[T]].xmap(o => Maybe.fromOption(o), _.toOption)
 
   implicit def ilistFormatter[A](implicit F: Formatter[A]): Formatter[IList[A]] = new Formatter[IList[A]] {
     override val length = None
 
-    override def serialize(bytes: Array[Byte], offset: Int, value: IList[A]) =
-      if(value == null) intFormatter.serialize(bytes, offset, -1)
+    override def serialize(encoder: Encoder, offset: Int, value: IList[A]) =
+      if(value == null) encoder.writeInt(offset, -1)
       else {
         val length = value.length
-        val bs =
-          F.length.map(l => BinaryUtil.ensureCapacity(bytes, offset, 4 + l * length))
-            .getOrElse(bytes)
+        val byteSize =
+          F.length.fold(encoder.writeInt(offset, length))(
+            l => {
+              encoder.ensureCapacity(offset, 4 + l * length)
+              encoder.writeIntUnsafe(offset, length)
+            }
+          )
 
-        value.foldLeft(intFormatter.serialize(bs, offset, length)){ case (acc, v) =>
-          val r = F.serialize(acc.value, offset + acc.byteSize, v)
-          LazyResult.strict(r.value, acc.byteSize + r.byteSize)
+        value.foldLeft(byteSize){ case (acc, v) =>
+          acc + F.serialize(encoder, offset + acc, v)
         }
       }
 

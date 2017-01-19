@@ -10,8 +10,4 @@ object LawsTest extends Base {
   val `Formatter laws` = Properties.list(
     scalazlaws.invariantFunctor.all[Formatter]
   ).lift()
-
-  val `LazyResult laws` = Properties.list(
-    scalazlaws.functor.all[LazyResult]
-  ).lift()
 }

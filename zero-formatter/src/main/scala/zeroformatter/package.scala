@@ -3,7 +3,6 @@ import shapeless.ops.hlist._
 
 package object zeroformatter extends FormatterInstances {
 
-  import BinaryUtil._
   import ObjectFormatterHelper._
 
   implicit def objectFormatter[
@@ -35,13 +34,13 @@ package object zeroformatter extends FormatterInstances {
 
       override val length = None
 
-      override def serialize(bytes: Array[Byte], offset: Int, value: A) = {
+      override def serialize(encoder: Encoder, offset: Int, value: A) = {
         // [byteSize:int(4)] + [lastIndex:int(4)] + [indexOffset...:int(4 * lastIndex)]
         val initbyteSize = 4 + 4 + ((lastIndex + 1) * 4)
-        val ObjectSerializerResult(bs, _, byteSize) =
-          serializer.serialize(ObjectSerializerResult(bytes, offset, initbyteSize), value)
-        val result = writeIntUnsafe(bs, offset + 4, lastIndex)
-        LazyResult(writeInt(result, offset, byteSize), byteSize)
+        val byteSize = serializer.serialize(encoder, offset, initbyteSize, value)
+        encoder.writeIntUnsafe(offset + 4, lastIndex)
+        encoder.writeIntUnsafe(offset, byteSize)
+        byteSize
       }
 
       override def deserialize(decoder: Decoder) = {

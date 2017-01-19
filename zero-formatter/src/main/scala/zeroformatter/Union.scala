@@ -2,14 +2,13 @@ package zeroformatter
 
 import shapeless._
 import shapeless.ops.hlist._
-import BinaryUtil._
 
 abstract class Union[K: Formatter] {
 
   def key: K
 
-  def serializeKey(bytes: Array[Byte], offset: Int): LazyResult[Array[Byte]] =
-    implicitly[Formatter[K]].serialize(bytes, offset, key)
+  def serializeKey(encoder: Encoder, offset: Int): Int =
+    implicitly[Formatter[K]].serialize(encoder, offset, key)
 
   def checkKey(decoder: Decoder): Boolean = {
     val o = decoder.offset
@@ -26,11 +25,11 @@ object Union {
 
   private[this] object writeUnion extends Poly2 {
     implicit def default[T <: Union[_]](implicit F: Formatter[T]) =
-      at[(Array[Byte], Int, Int), T] {
-        case ((bytes, offset, byteSize), value) =>
-          val v = value.serializeKey(bytes, offset)
-          val result = F.serialize(v.value, offset + v.byteSize, value)
-          (result.value, offset + v.byteSize + result.byteSize, byteSize + v.byteSize + result.byteSize)
+      at[ObjectSerializerResult, T] {
+        case (ObjectSerializerResult(encoder, offset, byteSize), value) =>
+          val v = value.serializeKey(encoder, offset)
+          val result = F.serialize(encoder, offset + v, value)
+          ObjectSerializerResult(encoder, offset + v + result, byteSize + v + result)
       }
   }
 
@@ -74,7 +73,7 @@ object Union {
   ](implicit
     gen: Generic.Aux[A, B],
     // serialize
-    write: ops.coproduct.LeftFolder.Aux[B, (Array[Byte], Int, Int), writeUnion.type, (Array[Byte], Int, Int)],
+    write: ops.coproduct.LeftFolder.Aux[B, ObjectSerializerResult, writeUnion.type, ObjectSerializerResult],
     // deserialize
     length: ops.coproduct.Length.Aux[B, C],
     range: ops.nat.Range.Aux[nat._0, C, D],
@@ -91,10 +90,12 @@ object Union {
 
       override val length = None
 
-      override def serialize(bytes: Array[Byte], offset: Int, value: A) = {
+      override def serialize(encoder: Encoder, offset: Int, value: A) = {
         val values = gen.to(value)
-        val (result, _, byteSize) = values.foldLeft((bytes, offset + 4, 4))(writeUnion)
-        LazyResult(writeInt(result, offset, byteSize), byteSize)
+        val ObjectSerializerResult(_, _, byteSize) =
+          values.foldLeft(ObjectSerializerResult(encoder, offset + 4, 4))(writeUnion)
+        encoder.writeIntUnsafe(offset, byteSize)
+        byteSize
       }
 
       override def deserialize(decoder: Decoder) = {

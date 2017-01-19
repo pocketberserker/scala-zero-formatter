@@ -39,11 +39,8 @@ object Struct {
 
       override val length = None
 
-      override def serialize(bytes: Array[Byte], offset: Int, value: A) = {
-        val ObjectSerializerResult(result, _, byteSize) =
-          serializer.serialize(ObjectSerializerResult(bytes, offset, 0), value)
-        LazyResult(result, byteSize)
-      }
+      override def serialize(encoder: Encoder, offset: Int, value: A) =
+        serializer.serialize(encoder, offset, 0, value)
 
       override def deserialize(decoder: Decoder) =
         gen.from(formatters.foldLeft(ReadStructResult(decoder, HNil: HNil))(readStruct).value.reverse)

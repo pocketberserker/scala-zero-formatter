@@ -30,15 +30,4 @@ abstract class Base extends Dog with Assert {
       Equal[Array[Byte]].equal(r1, r2)
     }
   }
-
-  implicit def lazyResultGen[T: Gen]: Gen[LazyResult[T]] = for {
-    v <- Gen[T]
-    s <- Gen[Int]
-  } yield LazyResult(v, s)
-
-  implicit def lazyResultEqual[T: Equal]: Equal[LazyResult[T]] = new Equal[LazyResult[T]] {
-    override def equal(a1: LazyResult[T], a2: LazyResult[T]) = {
-      Equal[T].equal(a1.value, a2.value) && Equal[Int].equal(a1.byteSize, a2.byteSize)
-    }
-  }
 }

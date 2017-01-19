@@ -1,17 +1,17 @@
 package zeroformatter
 
-case class ObjectSerializerResult(bytes: Array[Byte], offset: Int, byteSize: Int)
+case class ObjectSerializerResult(encoder: Encoder, offset: Int, byteSize: Int)
 
 object SerializeHelper {
 
-  def serializeObjectField[T](acc: ObjectSerializerResult, value: T, index: Int)(implicit F: Formatter[T]): ObjectSerializerResult = {
-    val o = acc.offset + acc.byteSize
-    val r = F.serialize(acc.bytes, o, value)
-    ObjectSerializerResult(BinaryUtil.writeIntUnsafe(r.value, acc.offset + 4 + 4 + 4 * index, o), acc.offset, acc.byteSize + r.byteSize)
+  def serializeObjectField[T](encoder: Encoder, offset: Int, byteSize: Int, value: T, index: Int)(implicit F: Formatter[T]): Int = {
+    val o = offset + byteSize
+    val r = F.serialize(encoder, o, value)
+    encoder.writeIntUnsafe(offset + 4 + 4 + 4 * index, o)
+    byteSize + r
   }
 
-  def serializeStructField[T](acc: ObjectSerializerResult, value: T)(implicit F: Formatter[T]): ObjectSerializerResult = {
-    val r = F.serialize(acc.bytes, acc.offset, value)
-    ObjectSerializerResult(r.value, acc.offset + r.byteSize, acc.byteSize + r.byteSize)
+  def serializeStructField[T](encoder: Encoder, offset: Int, byteSize: Int, value: T)(implicit F: Formatter[T]): Int = {
+    byteSize + F.serialize(encoder, offset + byteSize, value)
   }
 }
