@@ -29,7 +29,10 @@ object Build {
     )
 
   val modules: List[String] = (
-    zeroFormatterName ::
+    zeroFormatterCoreName ::
+    zeroFormatterMacrosName ::
+    scalazName ::
+    catsCoreName ::
     Nil
   )
 

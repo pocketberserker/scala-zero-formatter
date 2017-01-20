@@ -2,7 +2,21 @@
 
 [![Build Status](https://travis-ci.org/pocketberserker/scala-zero-formatter.svg?branch=master)](https://travis-ci.org/pocketberserker/scala-zero-formatter)
 
-implementation of [ZeroFormatter](https://github.com/neuecc/ZeroFormatter) in Scala.
+Implementation of [ZeroFormatter](https://github.com/neuecc/ZeroFormatter) in Scala.
+
+## Latest stable version
+
+```
+libraryDependencies += "com.github.pocketberserker" %% "zero-formatter" % "0.1.0"
+```
+
+```
+libraryDependencies += "com.github.pocketberserker" %% "zero-formatter-scalaz" % "0.1.0"
+```
+
+```
+libraryDependencies += "com.github.pocketberserker" %% "zero-formatter-cats-core" % "0.1.0"
+```
 
 ## Supported types
 
