@@ -18,6 +18,49 @@ libraryDependencies += "com.github.pocketberserker" %% "zero-formatter-scalaz" %
 libraryDependencies += "com.github.pocketberserker" %% "zero-formatter-cats-core" % "0.1.0"
 ```
 
+## Usage
+
+Define case class and fields mark as `@Index`, call `ZeroFormatter.serialize[T]/deserialize[T}`
+
+```scala
+import zeroformatter._
+
+case class MyClass(
+  @Index(0) age: Int,
+  @Index(1) firstName: String,
+  @Index(2) lastName: String,
+  @Index(3) list: Vector[Int]
+)
+
+val mc = MyClass(99, "hoge", "fuga", Vector(1, 10, 100))
+
+val bytes = ZeroFormatter.serialize(mc)
+val mc2 = ZeroFormatter.deserialize[MyClass](bytes)
+```
+
+## lazy-evaluation
+
+If you use `cats.Eval`, case class deserialization is lazy-evaluation.
+
+```scala
+import cats.Eval
+import zeroformatter._
+import zeroformatter.cats._
+
+case class LazyClass(
+  @Index(0) age: Eval[Int],
+  @Index(1) firstName: Eval[String],
+  @Index(2) lastName: Eval[String],
+  @Index(3) list: Eval[Vector[Int]]
+)
+
+val lc = ZeroFormatter.deserialize[LazyClass](bytes)
+```
+
+### Caution
+
+lazy-evaluation deserialization is supported only `Object` and `LazyList`.
+
 ## Supported types
 
 see also [WireFormat Specification](https://github.com/neuecc/ZeroFormatter/tree/1.5.7#wireformat-specification).
