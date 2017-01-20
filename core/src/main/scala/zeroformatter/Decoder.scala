@@ -87,6 +87,17 @@ final case class ArrayDecoder(buf: Array[Byte], private val _offset: Int) extend
   }
 
   override def newOffset(o: Int) = this.copy(_offset = o)
+
+  override def getString(): String = {
+    val len = getInt()
+    if(len == -1) null
+    else if(len < -1) throw FormatException(offset, "Invalid string length.")
+    else {
+      val r = new String(buf, offset, len, StandardCharsets.UTF_8)
+      offset += len
+      r
+    }
+  }
 }
 
 final case class BufferDecoder(buf: ByteBuffer, private val _offset: Int) extends Decoder(_offset) {
