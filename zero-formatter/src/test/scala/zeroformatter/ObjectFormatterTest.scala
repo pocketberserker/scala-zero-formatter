@@ -8,7 +8,7 @@ object ObjectFormatterTest extends Base {
   case class MyClass(
     @Index(0) age: Int,
     @Index(1) firstName: String,
-    @Index(2) laftName: String
+    @Index(2) lastName: String
   )
 
   val `serialize Object` = TestCase {
@@ -41,7 +41,7 @@ object ObjectFormatterTest extends Base {
   case class MyClassV2(
     @Index(0) age: Int,
     @Index(1) firstName: String,
-    @Index(2) laftName: String,
+    @Index(2) lastName: String,
     @Index(3) added: Int
   )
 
@@ -55,7 +55,7 @@ object ObjectFormatterTest extends Base {
   case class MyClassV3(
     @Index(0) age: Int,
     @Index(1) firstName: String,
-    @Index(2) laftName: String,
+    @Index(2) lastName: String,
     @Index(3) added: Option[Int]
   )
 
