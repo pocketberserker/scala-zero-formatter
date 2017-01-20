@@ -76,7 +76,7 @@ class ObjectFormatterMacros(val c: whitebox.Context) extends CaseClassMacros {
           // [byteSize:int(4)] + [lastIndex:int(4)] + [indexOffset...:int(4 * lastIndex)]
           val acc = q"${4 + 4 + (lastIndex + 1) * 4}"
           val r = indexes.foldLeft(acc){ case (a, (n, i)) =>
-            q"_root_.zeroformatter.Formatter.serializeObjectField(encoder, offset, $a, value.${TermName(n)}, $i)"
+            q"_root_.zeroformatter.Formatter.serializeObjectField(encoder, offset, $a, value.${TermName(n)}, ${4 + 4 + 4 * i})"
           }
           q"""
             val byteSize = $r

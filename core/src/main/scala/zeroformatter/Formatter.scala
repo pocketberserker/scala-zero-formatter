@@ -28,10 +28,10 @@ object Formatter {
   @inline
   def apply[T](implicit F: Formatter[T]): Formatter[T] = F
 
-  def serializeObjectField[T](encoder: Encoder, offset: Int, byteSize: Int, value: T, index: Int)(implicit F: Formatter[T]): Int = {
+  def serializeObjectField[T](encoder: Encoder, offset: Int, byteSize: Int, value: T, indexOffset: Int)(implicit F: Formatter[T]): Int = {
     val o = offset + byteSize
     val r = F.serialize(encoder, o, value)
-    encoder.writeIntUnsafe(offset + 4 + 4 + 4 * index, o)
+    encoder.writeIntUnsafe(offset + indexOffset, o)
     byteSize + r
   }
 
