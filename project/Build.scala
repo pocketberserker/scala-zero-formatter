@@ -83,7 +83,7 @@ object Build {
     name := scalazName,
     libraryDependencies ++= Seq(
       "org.scalaz" %%% "scalaz-core" % "7.2.8",
-      "com.github.scalaprops" %% "scalaprops-scalazlaws" % "0.3.4" % "test"
+      "com.github.scalaprops" %%% "scalaprops-scalazlaws" % "0.3.4" % "test"
     )
   ).dependsOn(zeroFormatter % "test->test;compile->compile")
 
