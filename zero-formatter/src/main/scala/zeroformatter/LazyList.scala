@@ -40,7 +40,7 @@ object LazyList {
         case Some(s) =>
           val len = decoder.readInt()
           if(len == -1) null.asInstanceOf[LazyList[F, A]]
-          else if(len < -1) throw new FormatException(decoder.offset, "Invalid length.")
+          else if(len < -1) throw new FormatException(decoder.offset - 4, s"Invalid length($len).")
           else {
             var i = 0
             val builder = Vector.newBuilder[F[A]]
@@ -55,7 +55,7 @@ object LazyList {
           val start = decoder.offset
           val bs = decoder.readInt()
           if(bs == -1) null.asInstanceOf[LazyList[F, A]]
-          else if(bs < -1) throw new FormatException(decoder.offset, "Invalid byteSize.")
+          else if(bs < -1) throw new FormatException(decoder.offset - 4, s"Invalid byte size($bs).")
           else {
             val l = decoder.readInt()
             val s = decoder.offset

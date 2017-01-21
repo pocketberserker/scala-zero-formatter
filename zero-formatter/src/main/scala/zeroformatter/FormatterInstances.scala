@@ -122,7 +122,7 @@ abstract class FormatterInstances2 {
     override def deserialize(decoder: Decoder) = {
       val length = decoder.readInt()
       if(length == -1) null
-      else if(length < -1) throw FormatException(decoder.offset, "Invalid Array length.")
+      else if(length < -1) throw FormatException(decoder.offset - 4, s"Invalid Array length($length).")
       else {
         val array = new Array[T](length)
         var i = 0
@@ -160,7 +160,7 @@ abstract class FormatterInstances2 {
     override def deserialize(decoder: Decoder) = {
       val length = decoder.readInt()
       if(length == -1) null
-      else if(length < -1) throw FormatException(decoder.offset, "Invalid List length.")
+      else if(length < -1) throw FormatException(decoder.offset - 4, s"Invalid List length($byteSize).")
       else {
         val list = scala.collection.mutable.ListBuffer[A]()
         var i = 0
@@ -217,7 +217,7 @@ abstract class FormatterInstances2 {
       override def deserialize(decoder: Decoder) = {
         val length = decoder.readInt()
         if(length == -1) null
-        else if(length < -1) throw FormatException(decoder.offset, "Invalid Map length.")
+        else if(length < -1) throw FormatException(decoder.offset - 4, s"Invalid Map length($length).")
         else {
           var i = 0
           val builder = Map.newBuilder[K, V]
@@ -256,7 +256,7 @@ abstract class FormatterInstances2 {
     override def deserialize(decoder: Decoder) = {
       val length = decoder.readInt()
       if(length == -1) null
-      else if(length < -1) throw FormatException(decoder.offset, "Invalid Array length.")
+      else if(length < -1) throw FormatException(decoder.offset - 4, s"Invalid Vector length($byteSize).")
       else {
         val builder = Vector.newBuilder[T]
         var i = 0
@@ -285,7 +285,7 @@ abstract class FormatterInstances1 extends FormatterInstances2 {
     override def deserialize(decoder: Decoder) = {
       val r = decoder.readInt()
       if(r == -1) None
-      else if(r < -1) throw FormatException(decoder.offset, "Invalid length or byte size.")
+      else if(r < -1) throw FormatException(decoder.offset - 4, s"Invalid length or byte size($r).")
       else {
         decoder.offset -= 4
         Some(F.deserialize(decoder))

@@ -42,7 +42,7 @@ package object scalaz {
     override def deserialize(decoder: Decoder) = {
       val length = decoder.readInt()
       if(length == -1) null
-      else if(length < -1) throw FormatException(decoder.offset, "Invalid List length.")
+      else if(length < -1) throw FormatException(decoder.offset - 4, s"Invalid List length($length).")
       else {
         var list: IList[A] = IList.empty
         var i = 0

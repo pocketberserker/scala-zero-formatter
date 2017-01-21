@@ -24,13 +24,13 @@ abstract class Decoder(var offset: Int) {
   def readBool(): Boolean = readByte() match {
     case 1 => true
     case 0 => false
-    case _ => throw FormatException(offset, "Invalid Boolean byte.")
+    case v => throw FormatException(offset - 1, s"Invalid Boolean byte($v).")
   }
 
   def readString(): String = {
     val len = readInt()
     if(len == -1) null
-    else if(len < -1) throw FormatException(offset, "Invalid string length.")
+    else if(len < -1) throw FormatException(offset - 4, s"Invalid string length($len).")
     else {
       val bytes = new Array[Byte](len)
       cfor(0)(_ < len, _ + 1){ i => bytes(i) = readByte() }
@@ -101,7 +101,7 @@ final case class ArrayDecoder(buf: Array[Byte], private val _offset: Int) extend
   override def readString(): String = {
     val len = readInt()
     if(len == -1) null
-    else if(len < -1) throw FormatException(offset, "Invalid string length.")
+    else if(len < -1) throw FormatException(offset - 4, s"Invalid string length($len).")
     else {
       val r = new String(buf, offset, len, StandardCharsets.UTF_8)
       offset += len

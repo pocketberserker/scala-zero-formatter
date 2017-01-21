@@ -123,7 +123,7 @@ class ObjectFormatterMacros(val c: whitebox.Context) extends CaseClassMacros {
           q"""
             val byteSize = decoder.readInt()
             if(byteSize == -1) null.asInstanceOf[$tpe]
-            else if(byteSize < -1) throw _root_.zeroformatter.FormatException(decoder.offset, "Invalid byte size.")
+            else if(byteSize < -1) throw _root_.zeroformatter.FormatException(decoder.offset - 4, "Invalid byte size(" + byteSize + ").")
             else {
               val offset = decoder.offset - 4
               val lastIndex = decoder.readInt()
