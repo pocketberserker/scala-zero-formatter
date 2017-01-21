@@ -42,7 +42,7 @@ object Formatter {
   def deserializeObjectField[T](decoder: Decoder, offset: Int, lastIndex: Int, index: Int, formatter: Formatter[T]): T =
     if(index > lastIndex) formatter.default
     else {
-      val o = decoder.getInt(offset + 4 + 4 + 4 * index)
+      val o = decoder.readInt(offset + 4 + 4 + 4 * index)
       if(o == 0) formatter.default
       else {
         decoder.offset = o

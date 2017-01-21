@@ -14,8 +14,8 @@ abstract class FormatterInstances extends FormatterInstances0 {
       r1 + r2
     }
     override def deserialize(decoder: Decoder) = {
-      val second = decoder.getLong()
-      val nano = decoder.getInt()
+      val second = decoder.readLong()
+      val nano = decoder.readInt()
       Instant.ofEpochSecond(second, nano).atOffset(ZoneOffset.UTC).toLocalDateTime
     }
   }
@@ -31,9 +31,9 @@ abstract class FormatterInstances extends FormatterInstances0 {
   }
 
   private[this] def deserializeOffsetDateTime(decoder: Decoder): OffsetDateTime = {
-    val second = decoder.getLong()
-    val nano = decoder.getInt()
-    val offsetMinites = decoder.getShort().toInt
+    val second = decoder.readLong()
+    val nano = decoder.readInt()
+    val offsetMinites = decoder.readShort().toInt
     Instant.ofEpochSecond(second, nano).atOffset(ZoneOffset.ofTotalSeconds(offsetMinites * 60))
   }
 

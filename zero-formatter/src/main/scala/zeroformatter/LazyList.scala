@@ -38,7 +38,7 @@ object LazyList {
     override def deserialize(decoder: Decoder) =
       F.length match {
         case Some(s) =>
-          val len = decoder.getInt()
+          val len = decoder.readInt()
           if(len == -1) null.asInstanceOf[LazyList[F, A]]
           else if(len < -1) throw new FormatException(decoder.offset, "Invalid length.")
           else {
@@ -53,16 +53,16 @@ object LazyList {
           }
         case None =>
           val start = decoder.offset
-          val bs = decoder.getInt()
+          val bs = decoder.readInt()
           if(bs == -1) null.asInstanceOf[LazyList[F, A]]
           else if(bs < -1) throw new FormatException(decoder.offset, "Invalid byteSize.")
           else {
-            val l = decoder.getInt()
+            val l = decoder.readInt()
             val s = decoder.offset
             val builder = Vector.newBuilder[F[A]]
             var i = 0
             while(i < l) {
-              decoder.offset = decoder.getInt(s + i * 4)
+              decoder.offset = decoder.readInt(s + i * 4)
               builder += F.deserialize(decoder)
               i += 1
             }

@@ -121,12 +121,12 @@ class ObjectFormatterMacros(val c: whitebox.Context) extends CaseClassMacros {
             q"_root_.zeroformatter.Formatter.deserializeObjectField(decoder, offset, lastIndex, $i, _root_.zeroformatter.Formatter[$t])" :: a
           }
           q"""
-            val byteSize = decoder.getInt()
+            val byteSize = decoder.readInt()
             if(byteSize == -1) null.asInstanceOf[$tpe]
             else if(byteSize < -1) throw _root_.zeroformatter.FormatException(decoder.offset, "Invalid byte size.")
             else {
               val offset = decoder.offset - 4
-              val lastIndex = decoder.getInt()
+              val lastIndex = decoder.readInt()
               val result = ${ctorDtor.construct(r.reverse)}
               decoder.offset = offset + byteSize
               result

@@ -40,7 +40,7 @@ package object scalaz {
       }
 
     override def deserialize(decoder: Decoder) = {
-      val length = decoder.getInt()
+      val length = decoder.readInt()
       if(length == -1) null
       else if(length < -1) throw FormatException(decoder.offset, "Invalid List length.")
       else {

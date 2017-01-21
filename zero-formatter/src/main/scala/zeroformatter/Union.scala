@@ -100,7 +100,7 @@ object Union {
       }
 
       override def deserialize(decoder: Decoder) = {
-        val byteSize = decoder.getInt()
+        val byteSize = decoder.readInt()
         if(byteSize == -1) null.asInstanceOf[A]
         else if(byteSize < -1) throw FormatException(decoder.offset, "Invalid byte size.")
         else {
