@@ -19,6 +19,7 @@ trait Encoder {
   def writeLong(offset:Int, value: Long): Int
   def writeChar(offset:Int, value: Char): Int
   def writeByteArray(offset:Int, value: Array[Byte]): Int
+  def writeByteArray(offset: Int, value: Array[Byte], start: Int, len: Int): Int
   def toByteArray: Array[Byte]
 
   def writeString(offset: Int, value: String): Int =
@@ -105,8 +106,12 @@ final case class ArrayEncoder(private var buf: Array[Byte]) extends Encoder {
     byteSize
   }
 
-  override def writeByteArray(offset: Int, value: Array[Byte]): Int = {
-    cfor(0)(_ < value.length, _ + 1){ i => buf(offset + i) = value(i) }
-    value.length
+  override def writeByteArray(offset: Int, value: Array[Byte]): Int =
+    writeByteArray(offset, value, 0, value.length)
+
+  override def writeByteArray(offset: Int, value: Array[Byte], start: Int, len: Int) = {
+    ensureCapacity(offset, len)
+    System.arraycopy(value, start, buf, offset, len)
+    len
   }
 }

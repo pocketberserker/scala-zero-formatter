@@ -18,6 +18,8 @@ trait ZeroFormatterData { self: ExampleData =>
     ZeroFormatter.serialize(a)
 
   val foosZ: Array[Byte] = encodeZ(foos)
+  val cachedFoos: Map[String, Accessor[Foo]] =
+    foos.mapValues(f => Accessor(f, Some(foosZ)))
   val barsZ: Array[Byte] = encodeZ(bars)
   val listIntsZ: Array[Byte] = encodeZ(listInts)
   val vecIntsZ: Array[Byte] = encodeZ(vecInts)
@@ -26,6 +28,9 @@ trait ZeroFormatterData { self: ExampleData =>
 trait ZeroFormatterEncoding { self: ExampleData =>
   @Benchmark
   def encodeFoosZ: Array[Byte] = encodeZ(foos)
+
+  @Benchmark
+  def encodeCachedFoosZ: Array[Byte] = encodeZ(cachedFoos)
 
   @Benchmark
   def encodeBarsZ: Array[Byte] = encodeZ(bars)

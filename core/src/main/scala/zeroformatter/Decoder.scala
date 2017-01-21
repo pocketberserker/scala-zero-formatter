@@ -6,6 +6,8 @@ import spire.syntax.cfor._
 
 abstract class Decoder(var offset: Int) {
 
+  def buffer: Array[Byte]
+
   def getByte(): Byte
   def getByte(offset: Int): Byte
   def getShort(): Short
@@ -32,6 +34,8 @@ abstract class Decoder(var offset: Int) {
 }
 
 final case class ArrayDecoder(buf: Array[Byte], private val _offset: Int) extends Decoder(_offset) {
+
+  override val buffer = buf
 
   override def getByte(): Byte = {
     offset += 1
@@ -101,6 +105,8 @@ final case class ArrayDecoder(buf: Array[Byte], private val _offset: Int) extend
 }
 
 final case class BufferDecoder(buf: ByteBuffer, private val _offset: Int) extends Decoder(_offset) {
+
+  override val buffer = buf.array()
 
   override def getByte(): Byte = {
     offset += 1
