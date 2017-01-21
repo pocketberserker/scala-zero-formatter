@@ -11,11 +11,7 @@ abstract class FormatterInstances2 {
     override def serialize(encoder: Encoder, offset: Int, value: Boolean) =
       encoder.writeBool(offset, value)
     override def deserialize(decoder: Decoder) =
-      decoder.readByte() match {
-        case 1 => true
-        case 0 => false
-        case _ => throw FormatException(decoder.offset, "Invalid Boolean byte.")
-      }
+      decoder.readBool()
   }
 
   implicit val byteFormatter: Formatter[Byte] = new Formatter[Byte] {
@@ -318,8 +314,7 @@ abstract class FormatterInstances0 extends FormatterInstances1 {
     }
 
     override def deserialize(decoder: Decoder) = {
-      val r = boolFormatter.deserialize(decoder)
-      if(r) Some(F.deserialize(decoder))
+      if(decoder.readBool()) Some(F.deserialize(decoder))
       else None
     }
   }

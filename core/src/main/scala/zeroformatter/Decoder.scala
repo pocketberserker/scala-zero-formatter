@@ -21,6 +21,12 @@ abstract class Decoder(var offset: Int) {
   def readChar(): Char
   def newOffset(o: Int): Decoder
 
+  def readBool(): Boolean = readByte() match {
+    case 1 => true
+    case 0 => false
+    case _ => throw FormatException(offset, "Invalid Boolean byte.")
+  }
+
   def readString(): String = {
     val len = readInt()
     if(len == -1) null
