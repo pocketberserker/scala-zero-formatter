@@ -54,7 +54,7 @@ abstract class FormatterInstances2 {
   implicit val floatFormatter: Formatter[Float] = new Formatter[Float] {
     override val length = Some(4)
     override def serialize(encoder: Encoder, offset: Int, value: Float) =
-      intFormatter.serialize(encoder, offset, java.lang.Float.floatToIntBits(value))
+      encoder.writeFloat(offset, value)
     override def deserialize(decoder: Decoder) =
       decoder.readFloat()
   }
@@ -62,7 +62,7 @@ abstract class FormatterInstances2 {
   implicit val doubleFormatter: Formatter[Double] = new Formatter[Double] {
     override val length = Some(8)
     override def serialize(encoder: Encoder, offset: Int, value: Double) =
-      longFormatter.serialize(encoder, offset, java.lang.Double.doubleToLongBits(value))
+      encoder.writeDouble(offset, value)
     override def deserialize(decoder: Decoder) =
       decoder.readDouble()
   }

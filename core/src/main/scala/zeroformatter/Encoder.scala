@@ -18,8 +18,14 @@ trait Encoder {
   def writeInt(offset:Int, value: Int): Int
   def writeLongUnsafe(offset:Int, value: Long): Int
   def writeLong(offset:Int, value: Long): Int
+  def writeFloatUnsafe(offset:Int, value: Float): Int
+  def writeFloat(offset:Int, value: Float): Int
+  def writeDoubleUnsafe(offset:Int, value: Double): Int
+  def writeDouble(offset:Int, value: Double): Int
   def writeCharUnsafe(offset:Int, value: Char): Int
   def writeChar(offset:Int, value: Char): Int
+  def writeByteArrayUnsafe(offset:Int, value: Array[Byte]): Int
+  def writeByteArrayUnsafe(offset: Int, value: Array[Byte], start: Int, len: Int): Int
   def writeByteArray(offset:Int, value: Array[Byte]): Int
   def writeByteArray(offset: Int, value: Array[Byte], start: Int, len: Int): Int
   def toByteArray: Array[Byte]
@@ -31,7 +37,7 @@ trait Encoder {
       val len = strBytes.length
       ensureCapacity(offset, 4 + len)
       val intSize = writeIntUnsafe(offset, len)
-      intSize + writeByteArray(offset + intSize, strBytes)
+      intSize + writeByteArrayUnsafe(offset + intSize, strBytes, 0, len)
     }
 }
 
@@ -105,6 +111,18 @@ final case class ArrayEncoder(private var buf: Array[Byte]) extends Encoder {
     writeLongUnsafe(offset, value)
   }
 
+  override def writeFloatUnsafe(offset: Int, value: Float): Int =
+    writeIntUnsafe(offset, java.lang.Float.floatToIntBits(value))
+
+  override def writeFloat(offset: Int, value: Float): Int =
+    writeInt(offset, java.lang.Float.floatToIntBits(value))
+
+  override def writeDoubleUnsafe(offset: Int, value: Double): Int =
+    writeLongUnsafe(offset, java.lang.Double.doubleToLongBits(value))
+
+  override def writeDouble(offset: Int, value: Double): Int =
+    writeLong(offset, java.lang.Double.doubleToLongBits(value))
+
   private[this] final val charSize = 2
 
   override def writeCharUnsafe(offset: Int, value: Char): Int = {
@@ -118,12 +136,19 @@ final case class ArrayEncoder(private var buf: Array[Byte]) extends Encoder {
     writeCharUnsafe(offset, value)
   }
 
+  override def writeByteArrayUnsafe(offset: Int, value: Array[Byte]): Int =
+    writeByteArrayUnsafe(offset, value, 0, value.length)
+
+  override def writeByteArrayUnsafe(offset: Int, value: Array[Byte], start: Int, len: Int) = {
+    System.arraycopy(value, start, buf, offset, len)
+    len
+  }
+
   override def writeByteArray(offset: Int, value: Array[Byte]): Int =
     writeByteArray(offset, value, 0, value.length)
 
   override def writeByteArray(offset: Int, value: Array[Byte], start: Int, len: Int) = {
     ensureCapacity(offset, len)
-    System.arraycopy(value, start, buf, offset, len)
-    len
+    writeByteArrayUnsafe(offset, value, start, len)
   }
 }

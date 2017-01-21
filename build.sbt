@@ -1,7 +1,7 @@
 import Build._
 
 lazy val jvmProjects = Seq[ProjectReference](
-  zeroFormatterCoreJVM, zeroFormatterMacrosJVM, zeroFormatterJVM, scalazJVM, catsCoreJVM, benchmark
+  zeroFormatterCoreJVM, zeroFormatterMacrosJVM, zeroFormatterJVM, scalazJVM, catsCoreJVM, unsafe, benchmark
 )
 
 lazy val jsProjects = Seq[ProjectReference](
@@ -28,6 +28,12 @@ lazy val catsCoreJS = catsCore.js
 lazy val catsCoreJVM = catsCore.jvm
 lazy val catsCoreRoot = project.aggregate(catsCoreJS, catsCoreJVM)
 
+lazy val unsafe = Project("unsafe", file("unsafe")).settings(
+  Common.commonSettings
+).settings(
+  name := unsafeName
+).dependsOn(zeroFormatterJVM % "compile->compile;test->test")
+
 val root = Project("root", file(".")).settings(
   Common.commonSettings
 ).settings(
@@ -44,7 +50,7 @@ lazy val benchmark = Project("benchmark", file("benchmark")).settings(
   publishArtifact := false,
   publish := {},
   publishLocal := {}
-).enablePlugins(JmhPlugin).dependsOn(catsCoreJVM, zeroFormatterJVM % "test->test")
+).enablePlugins(JmhPlugin).dependsOn(catsCoreJVM, zeroFormatterJVM % "test->test", unsafe)
 
 lazy val rootJS = project.aggregate(jsProjects: _*)
 lazy val rootJVM = project.aggregate(jvmProjects: _*)

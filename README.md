@@ -11,6 +11,10 @@ libraryDependencies += "com.github.pocketberserker" %% "zero-formatter" % "0.3.0
 ```
 
 ```
+libraryDependencies += "com.github.pocketberserker" %% "zero-formatter-unsafe" % "0.3.0"
+```
+
+```
 libraryDependencies += "com.github.pocketberserker" %% "zero-formatter-scalaz" % "0.3.0"
 ```
 
