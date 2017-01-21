@@ -160,7 +160,7 @@ abstract class FormatterInstances2 {
     override def deserialize(decoder: Decoder) = {
       val length = decoder.readInt()
       if(length == -1) null
-      else if(length < -1) throw FormatException(decoder.offset - 4, s"Invalid List length($byteSize).")
+      else if(length < -1) throw FormatException(decoder.offset - 4, s"Invalid List length($length).")
       else {
         val list = scala.collection.mutable.ListBuffer[A]()
         var i = 0
@@ -256,7 +256,7 @@ abstract class FormatterInstances2 {
     override def deserialize(decoder: Decoder) = {
       val length = decoder.readInt()
       if(length == -1) null
-      else if(length < -1) throw FormatException(decoder.offset - 4, s"Invalid Vector length($byteSize).")
+      else if(length < -1) throw FormatException(decoder.offset - 4, s"Invalid Vector length($length).")
       else {
         val builder = Vector.newBuilder[T]
         var i = 0
