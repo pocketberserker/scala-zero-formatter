@@ -135,15 +135,24 @@ abstract class FormatterInstances2 {
     }
   }
 
-  implicit def listFormatter[A](implicit F: Formatter[A]): Formatter[List[A]] = new Formatter[List[A]] {
-    override val length = None
+  implicit def listFormatter[A](implicit F: Formatter[A]): Formatter[List[A]] = {
 
-    override def serialize(encoder: Encoder, offset: Int, value: List[A]) =
-      if(value == null) encoder.writeInt(offset, -1)
-      else {
+    @annotation.tailrec
+    def go(v: List[A], encoder: Encoder, offset: Int, byteSize: Int): Int = {
+      if(v.nonEmpty) {
+        go(v.tail, encoder, offset, byteSize + F.serialize(encoder, offset + byteSize, v.head))
+      }
+      else byteSize
+    }
 
-        val length = value.length
-        var byteSize =
+    new Formatter[List[A]] {
+      override val length = None
+
+      override def serialize(encoder: Encoder, offset: Int, value: List[A]) =
+        if(value == null) encoder.writeInt(offset, -1)
+        else {
+
+          val length = value.length
           F.length.fold(encoder.writeInt(offset, length))(
             l => {
               encoder.ensureCapacity(offset, 4 + l * length)
@@ -151,24 +160,22 @@ abstract class FormatterInstances2 {
             }
           )
 
-        value.foreach { v =>
-          byteSize += F.serialize(encoder, offset + byteSize, v)
+          go(value, encoder, offset, 4)
         }
-        byteSize
-      }
 
-    override def deserialize(decoder: Decoder) = {
-      val length = decoder.readInt()
-      if(length == -1) null
-      else if(length < -1) throw FormatException(decoder.offset - 4, s"Invalid List length($length).")
-      else {
-        val list = scala.collection.mutable.ListBuffer[A]()
-        var i = 0
-        while(i < length) {
-          list += F.deserialize(decoder)
-          i += 1
+      override def deserialize(decoder: Decoder) = {
+        val length = decoder.readInt()
+        if(length == -1) null
+        else if(length < -1) throw FormatException(decoder.offset - 4, s"Invalid List length($length).")
+        else {
+          val list = scala.collection.mutable.ListBuffer[A]()
+          var i = 0
+          while(i < length) {
+            list += F.deserialize(decoder)
+            i += 1
+          }
+          list.toList
         }
-        list.toList
       }
     }
   }
@@ -247,8 +254,10 @@ abstract class FormatterInstances2 {
             }
           )
 
-        value.foreach { v =>
-          byteSize += F.serialize(encoder, offset + byteSize, v)
+        var i = 0
+        while(i < length) {
+          byteSize += F.serialize(encoder, offset + byteSize, value(i))
+          i += 1
         }
         byteSize
       }
@@ -262,7 +271,7 @@ abstract class FormatterInstances2 {
         var i = 0
         while(i < length) {
           builder += F.deserialize(decoder)
-          i += 1
+           i += 1
         }
         builder.result()
       }
