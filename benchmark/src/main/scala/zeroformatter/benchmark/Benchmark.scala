@@ -8,6 +8,7 @@ circe-benchmarks is licensed under the Apache License, Version 2.0 (the "License
   * change benchmark target
   * delete printing and parsing benchmarks
   * add more data
+  * List to Vector
 
 */
 
@@ -22,11 +23,11 @@ class ExampleData extends ZeroFormatterData {
   lazy val vecInts: Vector[Int] = (0 to 1000).toVector
 
   lazy val foos: Map[String, Foo] = List.tabulate(100) { i =>
-    ("b" * i) -> Foo("a" * i, (i + 2.0) / (i + 1.0), i, i * 1000L, (0 to i).map(_ % 2 == 0).toList)
+    ("b" * i) -> Foo("a" * i, (i + 2.0) / (i + 1.0), i, i * 1000L, (0 to i).map(_ % 2 == 0).toVector)
   }.toMap
 
   lazy val bars: Map[String, Bar] = List.tabulate(100) { i =>
-    ("b" * i) -> Bar(Eval.now("a" * i), Eval.now((i + 2.0) / (i + 1.0)), Eval.now(i), Eval.now(i * 1000L), Eval.now((0 to i).map(_ % 2 == 0).toList))
+    ("b" * i) -> Bar(Eval.now("a" * i), Eval.now((i + 2.0) / (i + 1.0)), Eval.now(i), Eval.now(i * 1000L), Eval.now((0 to i).map(_ % 2 == 0).toVector))
   }.toMap
 
   val listIntsBytes: Array[Byte] = listIntsZ

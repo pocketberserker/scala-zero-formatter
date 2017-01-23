@@ -8,7 +8,7 @@ case class Foo(
   @Index(1) d: Double,
   @Index(2) i: Int,
   @Index(3) l: Long,
-  @Index(4) bs: List[Boolean]
+  @Index(4) bs: Vector[Boolean]
 )
 
 object Foo extends ZeroFormatterFooInstances {
