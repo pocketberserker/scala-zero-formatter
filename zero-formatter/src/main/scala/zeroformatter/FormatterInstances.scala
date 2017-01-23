@@ -238,15 +238,25 @@ abstract class FormatterInstances2 {
     }
   }
 
-  implicit def vectorFormatter[T](implicit F: Formatter[T]): Formatter[Vector[T]] = new Formatter[Vector[T]] {
-    override val length = None
+  implicit def vectorFormatter[T](implicit F: Formatter[T]): Formatter[Vector[T]] = {
 
-    override def serialize(encoder: Encoder, offset: Int, value: Vector[T]) =
-      if(value == null) encoder.writeInt(offset, -1)
-      else {
+    @annotation.tailrec
+    def go(v: Vector[T], encoder: Encoder, offset: Int, byteSize: Int, i: Int, length: Int): Int = {
+      if(i < length) {
+        go(v, encoder, offset, byteSize + F.serialize(encoder, offset + byteSize, v(i)), i + 1, length)
+      }
+      else byteSize
+    }
 
-        val length = value.length
-        var byteSize =
+    new Formatter[Vector[T]] {
+
+      override val length = None
+
+      override def serialize(encoder: Encoder, offset: Int, value: Vector[T]) =
+        if(value == null) encoder.writeInt(offset, -1)
+        else {
+
+          val length = value.length
           F.length.fold(encoder.writeInt(offset, length))(
             l => {
               encoder.ensureCapacity(offset, 4 + l * length)
@@ -254,26 +264,22 @@ abstract class FormatterInstances2 {
             }
           )
 
-        var i = 0
-        while(i < length) {
-          byteSize += F.serialize(encoder, offset + byteSize, value(i))
-          i += 1
+          go(value, encoder, offset, 4, 0, length)
         }
-        byteSize
-      }
 
-    override def deserialize(decoder: Decoder) = {
-      val length = decoder.readInt()
-      if(length == -1) null
-      else if(length < -1) throw FormatException(decoder.offset - 4, s"Invalid Vector length($length).")
-      else {
-        val builder = Vector.newBuilder[T]
-        var i = 0
-        while(i < length) {
-          builder += F.deserialize(decoder)
-           i += 1
+      override def deserialize(decoder: Decoder) = {
+        val length = decoder.readInt()
+        if(length == -1) null
+        else if(length < -1) throw FormatException(decoder.offset - 4, s"Invalid Vector length($length).")
+        else {
+          val builder = Vector.newBuilder[T]
+          var i = 0
+          while(i < length) {
+            builder += F.deserialize(decoder)
+            i += 1
+          }
+          builder.result()
         }
-        builder.result()
       }
     }
   }
