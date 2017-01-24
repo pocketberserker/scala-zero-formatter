@@ -10,6 +10,7 @@ trait Encoder {
 
   def writeBoolUnsafe(offset:Int, value: Boolean): Int
   def writeBool(offset:Int, value: Boolean): Int
+  def writeByteUnsafe(offset:Int, value: Byte): Int
   def writeByte(offset:Int, value: Byte): Int
   def writeShortUnsafe(offset:Int, value: Short): Int
   def writeShort(offset:Int, value: Short): Int
@@ -17,6 +18,7 @@ trait Encoder {
   def writeInt(offset:Int, value: Int): Int
   def writeLongUnsafe(offset:Int, value: Long): Int
   def writeLong(offset:Int, value: Long): Int
+  def writeCharUnsafe(offset:Int, value: Char): Int
   def writeChar(offset:Int, value: Char): Int
   def writeByteArray(offset:Int, value: Array[Byte]): Int
   def writeByteArray(offset: Int, value: Array[Byte], start: Int, len: Int): Int
@@ -49,6 +51,11 @@ final case class ArrayEncoder(private var buf: Array[Byte]) extends Encoder {
   override def writeBool(offset: Int, value: Boolean): Int = {
     ensureCapacity(offset, 1)
     writeBoolUnsafe(offset, value)
+  }
+
+  override def writeByteUnsafe(offset: Int, value: Byte): Int = {
+    buf(offset) = value
+    1
   }
 
   override def writeByte(offset: Int, value: Byte): Int = {
@@ -98,12 +105,17 @@ final case class ArrayEncoder(private var buf: Array[Byte]) extends Encoder {
     writeLongUnsafe(offset, value)
   }
 
-  override def writeChar(offset: Int, value: Char): Int = {
-    val byteSize = 2
-    ensureCapacity(offset, byteSize)
-    val cs = allocate(byteSize).putChar(value).array()
+  private[this] final val charSize = 2
+
+  override def writeCharUnsafe(offset: Int, value: Char): Int = {
+    val cs = allocate(charSize).putChar(value).array()
     cfor(0)(_ <= 1, _ + 1){ i => buf(offset + i) = cs(i) }
-    byteSize
+    charSize
+  }
+
+  override def writeChar(offset: Int, value: Char): Int = {
+    ensureCapacity(offset, charSize)
+    writeCharUnsafe(offset, value)
   }
 
   override def writeByteArray(offset: Int, value: Array[Byte]): Int =

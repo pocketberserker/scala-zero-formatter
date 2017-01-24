@@ -6,6 +6,7 @@ import scalaz.std.anyVal._
 import scalaz.std.string._
 import scalaz.std.option._
 import scalaz.std.list._
+import scalaz.std.vector._
 import scalaz.std.map._
 
 object SequenceFormatterTest extends Base {
@@ -160,6 +161,17 @@ object SequenceFormatterTest extends Base {
     for {
       values <- `serialize Map[Int, TestElement]`
       _ <- assert.eq(values._1, ZeroFormatter.deserialize[Map[Int, TestElement]](values._2)).lift
+    } yield ()
+  }
+
+  val `serialize and deserialize Vector[Int]` = TestCase {
+    for {
+      values <- `serialize Array[Int]`
+      value = values._1.toVector
+      bytes = values._2
+      actualBytes = ZeroFormatter.serialize(value)
+      _ <- assert.eq(bytes, actualBytes).lift
+      _ <- assert.eq(value, ZeroFormatter.deserialize[Vector[Int]](actualBytes)).lift
     } yield ()
   }
 }
