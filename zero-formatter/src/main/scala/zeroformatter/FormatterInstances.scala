@@ -297,15 +297,8 @@ abstract class FormatterInstances1 extends FormatterInstances2 {
       case None => encoder.writeInt(offset, -1)
     }
 
-    override def deserialize(decoder: Decoder) = {
-      val r = decoder.readInt()
-      if(r == -1) None
-      else if(r < -1) throw FormatException(decoder.offset - 4, s"Invalid length or byte size($r).")
-      else {
-        decoder.offset -= 4
-        Some(F.deserialize(decoder))
-      }
-    }
+    override def deserialize(decoder: Decoder) =
+      Option[T](F.deserialize(decoder))
   }
 
   implicit val arrayByteFormatter: Formatter[Array[Byte]] = new Formatter[Array[Byte]] {
