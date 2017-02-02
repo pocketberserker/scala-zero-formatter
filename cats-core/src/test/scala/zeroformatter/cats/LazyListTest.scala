@@ -25,6 +25,7 @@ object LazyListTest extends Base {
     } yield (value, values._2)
   }
 
+  @ZeroFormattable
   case class TestElement(
     @Index(0) a: Int,
     @Index(1) b: String,

@@ -25,6 +25,7 @@ Define case class and fields mark as `@Index`, call `ZeroFormatter.serialize[T]/
 ```scala
 import zeroformatter._
 
+@ZeroFormattable
 case class MyClass(
   @Index(0) age: Int,
   @Index(1) firstName: String,
@@ -47,6 +48,7 @@ import cats.Eval
 import zeroformatter._
 import zeroformatter.cats._
 
+@ZeroFormattable
 case class LazyClass(
   @Index(0) age: Eval[Int],
   @Index(1) firstName: Eval[String],

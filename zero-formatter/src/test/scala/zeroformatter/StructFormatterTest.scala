@@ -5,6 +5,7 @@ import scalaz.std.anyVal._
 
 object StructFormatterTest extends Base {
 
+  @ZeroFormattable
   case class MyClass(
     age: Int,
     firstName: String,
@@ -73,5 +74,16 @@ object StructFormatterTest extends Base {
       values <- `serialize Tuple2`
       _ <- assert.equal(values._1, ZeroFormatter.deserialize[(Int, Int)](values._2)).lift
     } yield ()
+  }
+
+  @ZeroFormattable
+  case class ZeroStruct() extends Struct
+
+  val `serialize zero field Struct` = TestCase {
+    assert.eq(Array[Byte](), ZeroFormatter.serialize(ZeroStruct()))
+  }
+
+  val `deserialize zero field Struct` = TestCase {
+    assert.equal(ZeroStruct(), ZeroFormatter.deserialize[ZeroStruct](Array[Byte]()))
   }
 }

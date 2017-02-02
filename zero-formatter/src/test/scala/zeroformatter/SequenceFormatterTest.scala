@@ -33,6 +33,7 @@ object SequenceFormatterTest extends Base {
     } yield ()
   }
 
+  @ZeroFormattable
   case class TestElement(
     @Index(0) a: Int,
     @Index(1) b: String,

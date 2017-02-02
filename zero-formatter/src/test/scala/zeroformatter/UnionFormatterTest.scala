@@ -4,9 +4,11 @@ import dog._
 import scalaz.std.anyVal._
 
 sealed trait TestADT extends Union[Int] with Product with Serializable
+@ZeroFormattable
 final case class Test0(@Index(0) a: Int) extends TestADT {
     override val key = 1
   }
+@ZeroFormattable
 final case class Test1(@Index(0) b: Int, @Index(1) c: Int) extends TestADT {
   override val key = 2
 }

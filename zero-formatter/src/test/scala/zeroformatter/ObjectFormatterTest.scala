@@ -5,6 +5,7 @@ import scalaz.std.anyVal._
 
 object ObjectFormatterTest extends Base {
 
+  @ZeroFormattable
   case class MyClass(
     @Index(0) age: Int,
     @Index(1) firstName: String,
@@ -38,6 +39,7 @@ object ObjectFormatterTest extends Base {
     } yield ()
   }
 
+  @ZeroFormattable
   case class MyClassV2(
     @Index(0) age: Int,
     @Index(1) firstName: String,
@@ -52,6 +54,7 @@ object ObjectFormatterTest extends Base {
     } yield ()
   }
 
+  @ZeroFormattable
   case class MyClassV3(
     @Index(0) age: Int,
     @Index(1) firstName: String,
@@ -63,6 +66,29 @@ object ObjectFormatterTest extends Base {
     for {
       values <- `serialize Object`
       _ <- assert.equal(MyClassV3(99, "hoge", "fuga", None), ZeroFormatter.deserialize[MyClassV3](values._2)).lift
+    } yield ()
+  }
+
+  @ZeroFormattable
+  case class ZeroClass()
+
+  val `serialize zero field Object` = TestCase {
+    val value = ZeroClass()
+    val bytes =
+      Array(
+        0x0c, 0x00, 0x00, 0x00,
+        0x00, 0x00, 0x00, 0x00,
+        0x00, 0x00, 0x00, 0x00
+      ).map(_.toByte)
+    for {
+      _ <- assert.eq(bytes, ZeroFormatter.serialize(value)).lift
+    } yield (value, bytes)
+  }
+
+  val `deserialize zero field Object` = TestCase {
+    for {
+      values <- `serialize zero field Object`
+      _ <- assert.equal(values._1, ZeroFormatter.deserialize[ZeroClass](values._2)).lift
     } yield ()
   }
 }

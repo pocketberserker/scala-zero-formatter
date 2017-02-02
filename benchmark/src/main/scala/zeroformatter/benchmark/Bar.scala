@@ -3,6 +3,7 @@ package zeroformatter.benchmark
 import cats.Eval
 import zeroformatter._
 
+@ZeroFormattable
 case class Bar(
   @Index(0) s: Eval[String],
   @Index(1) d: Eval[Double],

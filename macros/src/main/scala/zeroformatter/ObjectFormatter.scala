@@ -31,6 +31,11 @@ class ObjectFormatterMacros(val c: whitebox.Context) extends CaseClassMacros {
   def construct(tpe: Type): List[Tree] => Tree =
     args => q"${companionRef(tpe)}(..$args)"
 
+  def markZeroFormattable(tpe: Type): Boolean = {
+    val ZeroFormattable = typeOf[ZeroFormattable]
+    tpe.typeSymbol.annotations.exists(ann => ann.tree.tpe =:= ZeroFormattable)
+  }
+
   def getIndexes(tpe: Type, fields: List[(TermName, Type)]): List[(String, Int)] = {
 
     val Index = typeOf[Index]
@@ -67,34 +72,50 @@ class ObjectFormatterMacros(val c: whitebox.Context) extends CaseClassMacros {
     val Encoder = symbolOf[Encoder]
     val Struct = typeOf[Struct].typeSymbol
 
-    val serializeImpl =
-      if(isProduct(tpe)) {
-        val fields = fieldsOf(tpe)
-        val indexes = getIndexes(tpe, fields)
-        if(indexes.nonEmpty) {
-          val lastIndex = indexes.map(_._2).reduce(_ max _)
-          // [byteSize:int(4)] + [lastIndex:int(4)] + [indexOffset...:int(4 * lastIndex)]
-          val acc = q"${4 + 4 + (lastIndex + 1) * 4}"
-          val r = indexes.foldLeft(acc){ case (a, (n, i)) =>
-            q"_root_.zeroformatter.Formatter.serializeObjectField(encoder, offset, $a, value.${TermName(n)}, ${4 + 4 + 4 * i})"
+    if (markZeroFormattable(tpe)) {
+      val serializeImpl =
+        if(isProduct(tpe)) {
+          val fields = fieldsOf(tpe)
+          val indexes = getIndexes(tpe, fields)
+          if(tpe.baseClasses.contains(Struct)) {
+            val acc: Tree = q"0"
+            fields.map { case (name, _) => name.decodedName.toString }
+              .foldLeft(acc){ case (a, n) =>
+                q"_root_.zeroformatter.Formatter.serializeStructField(encoder, offset, $a, value.${TermName(n)})"
+              }
           }
-          q"""
-            val byteSize = $r
-            encoder.writeIntUnsafe(offset + 4, $lastIndex)
-            encoder.writeIntUnsafe(offset, byteSize)
-            byteSize
-          """
-        }
-        else if(tpe.baseClasses.contains(Struct)) {
-          val acc: Tree = q"0"
-          fields.map { case (name, _) => name.decodedName.toString }
-            .foldLeft(acc){ case (a, n) =>
-              q"_root_.zeroformatter.Formatter.serializeStructField(encoder, offset, $a, value.${TermName(n)})"
+          else if(indexes.nonEmpty) {
+            val lastIndex = indexes.map(_._2).reduce(_ max _)
+            // [byteSize:int(4)] + [lastIndex:int(4)] + [indexOffset...:int(4 * lastIndex)]
+            val acc = q"${8 + (lastIndex + 1) * 4}"
+            val r = indexes.foldLeft(acc){ case (a, (n, i)) =>
+              q"_root_.zeroformatter.Formatter.serializeObjectField(encoder, offset, $a, value.${TermName(n)}, ${8 + 4 * i})"
             }
+            q"""
+              if(value == null) encoder.writeInt(offset, -1)
+              else {
+                val byteSize = $r
+                encoder.writeIntUnsafe(offset + 4, $lastIndex)
+                encoder.writeIntUnsafe(offset, byteSize)
+                byteSize
+              }
+            """
+          }
+          else {
+            q"""
+              if(value == null) encoder.writeInt(offset, -1)
+              else {
+                val byteSize = 12
+                encoder.ensureCapacity(offset, byteSize)
+                encoder.writeIntUnsafe(offset, byteSize)
+                encoder.writeIntUnsafe(offset + 4, 0)
+                encoder.writeIntUnsafe(offset + 8, 0)
+                byteSize
+              }
+            """
+          }
         }
-        else abort(s"$tpe fields require to apply Index annotation or inherit Struct")
-      }
-      else abort(s"$tpe is not case class")
+        else abort(s"$tpe is not case class")
 
       q"""
         new $ObjectSerializer[$tpe] {
@@ -103,6 +124,8 @@ class ObjectFormatterMacros(val c: whitebox.Context) extends CaseClassMacros {
           }
         }
       """
+    }
+    else abort(s"$tpe requires to apply ZeroFormattable annotation")
   }
 
   def materializeDeserializer[A: c.WeakTypeTag]: Tree = {
@@ -112,37 +135,48 @@ class ObjectFormatterMacros(val c: whitebox.Context) extends CaseClassMacros {
     val Decoder = symbolOf[Decoder]
     val Struct = typeOf[Struct].typeSymbol
 
-    val deserializeImpl =
-      if(isProduct(tpe)) {
-        val fields = fieldsOf(tpe)
-        val indexes = getIndexes(tpe, fields)
-        if(indexes.nonEmpty) {
-          val r = indexes.zip(fields.map(_._2)).foldLeft(List[Tree]()){ case (a, ((_, i), t)) =>
-            q"_root_.zeroformatter.Formatter.deserializeObjectField(decoder, offset, lastIndex, $i, _root_.zeroformatter.Formatter[$t])" :: a
+    if (markZeroFormattable(tpe)) {
+      val deserializeImpl =
+        if(isProduct(tpe)) {
+          val fields = fieldsOf(tpe)
+          val indexes = getIndexes(tpe, fields)
+          if(tpe.baseClasses.contains(Struct)) {
+            val r = fieldsOf(tpe).map { case (_, t) => t }
+              .foldLeft(List[Tree]()){ case (a, t) =>
+                q"_root_.zeroformatter.Formatter.deserializeStructField(decoder, _root_.zeroformatter.Formatter[$t])" :: a
+              }
+            q"${ctorDtor.construct(r.reverse)}"
           }
-          q"""
-            val byteSize = decoder.readInt()
-            if(byteSize == -1) null.asInstanceOf[$tpe]
-            else if(byteSize < -1) throw _root_.zeroformatter.FormatException(decoder.offset - 4, "Invalid byte size(" + byteSize + ").")
-            else {
-              val offset = decoder.offset - 4
-              val lastIndex = decoder.readInt()
-              val result = ${ctorDtor.construct(r.reverse)}
-              decoder.offset = offset + byteSize
-              result
+          else if(indexes.nonEmpty) {
+            val r = indexes.zip(fields.map(_._2)).foldLeft(List[Tree]()){ case (a, ((_, i), t)) =>
+              q"_root_.zeroformatter.Formatter.deserializeObjectField(decoder, offset, lastIndex, $i, _root_.zeroformatter.Formatter[$t])" :: a
             }
-          """
+            q"""
+              val byteSize = decoder.readInt()
+              if(byteSize == -1) null.asInstanceOf[$tpe]
+              else if(byteSize < -1) throw _root_.zeroformatter.FormatException(decoder.offset - 4, "Invalid byte size(" + byteSize + ").")
+              else {
+                val offset = decoder.offset - 4
+                val lastIndex = decoder.readInt()
+                val result = ${ctorDtor.construct(r.reverse)}
+                decoder.offset = offset + byteSize
+                result
+              }
+            """
+          }
+          else {
+            q"""
+              val byteSize = decoder.readInt()
+              if(byteSize == -1) null.asInstanceOf[$tpe]
+              else if(byteSize < -1) throw _root_.zeroformatter.FormatException(decoder.offset - 4, "Invalid byte size(" + byteSize + ").")
+              else {
+                decoder.offset += 8
+                ${ctorDtor.construct(List[Tree]())}
+              }
+            """
+          }
         }
-        else if(tpe.baseClasses.contains(Struct)) {
-          val r = fieldsOf(tpe).map { case (_, t) => t }
-            .foldLeft(List[Tree]()){ case (a, t) =>
-              q"_root_.zeroformatter.Formatter.deserializeStructField(decoder, _root_.zeroformatter.Formatter[$t])" :: a
-            }
-          q"${ctorDtor.construct(r.reverse)}"
-        }
-        else abort(s"$tpe fields require to apply Index annotation or inherit Struct")
-      }
-      else abort(s"$tpe is not case class")
+        else abort(s"$tpe is not case class")
 
       q"""
         new $ObjectDeserializer[$tpe] {
@@ -151,5 +185,7 @@ class ObjectFormatterMacros(val c: whitebox.Context) extends CaseClassMacros {
           }
         }
       """
+    }
+    else abort(s"$tpe requires to apply ZeroFormattable annotation")
   }
 }

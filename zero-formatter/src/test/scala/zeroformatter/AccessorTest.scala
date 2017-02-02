@@ -5,6 +5,7 @@ import scalaz.std.anyVal._
 
 object AccessorTest extends Base {
 
+  @ZeroFormattable
   case class MyClass(
     @Index(0) age: Int,
     @Index(1) firstName: String,
