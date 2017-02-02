@@ -76,6 +76,26 @@ object StructFormatterTest extends Base {
     } yield ()
   }
 
+  val `serialize Tuple2 option` = TestCase {
+    val value: Option[(Int, Int)] = Some((1, 2))
+    val bytes =
+      Array(
+        0x01,
+        0x01, 0x00, 0x00, 0x00,
+        0x02, 0x00, 0x00, 0x00
+      ).map(_.toByte)
+    for {
+      _ <- assert.eq(bytes, ZeroFormatter.serialize(value)).lift
+    } yield (value, bytes)
+  }
+
+  val `deserialize Tuple2 option` = TestCase {
+    for {
+      values <- `serialize Tuple2 option`
+      _ <- assert.equal(values._1, ZeroFormatter.deserialize[Option[(Int, Int)]](values._2)).lift
+    } yield ()
+  }
+
   @ZeroFormattable
   case class ZeroStruct() extends Struct
 

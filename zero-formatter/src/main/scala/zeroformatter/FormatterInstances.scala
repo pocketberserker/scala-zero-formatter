@@ -1051,4 +1051,7 @@ abstract class FormatterInstances0 extends FormatterInstances1 {
 
   implicit val stringOptionFormatter: Formatter[Option[String]] =
     stringFormatter.xmap(Option[String](_), _.orNull)
+
+  implicit def tuple2OptionFormatter[A1, A2](implicit F: Formatter[(A1, A2)]): Formatter[Option[(A1, A2)]] =
+    nullableFormatter[(A1, A2)]
 }

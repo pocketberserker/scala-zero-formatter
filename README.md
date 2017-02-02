@@ -125,6 +125,7 @@ see also [WireFormat Specification](https://github.com/neuecc/ZeroFormatter/tree
 | Option[Object] | Object | if byteSize = -1, indicates `None` |
 | `Struct` | Struct | |
 | `Option[Struct]` | Struct? | |
+| `Option[(A1, A2)]` | Tuple<A1, A2> | |
 
 ### Union Format
 
