@@ -6,13 +6,13 @@ import FormatterHelper._
 
 abstract class Enum[
   @specialized(Byte, Short, Int, Long)T: Formatter
-] extends ZeroFormattable {
+] {
 
   def label: T
 
   private[this] val formatter = implicitly[Formatter[T]]
 
-  override val length: Option[Int] = formatter.length
+  val length: Option[Int] = formatter.length
 
   def serialize(encoder: Encoder, offset: Int): Int =
     formatter.serialize(encoder, offset, label)

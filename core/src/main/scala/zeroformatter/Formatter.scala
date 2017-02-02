@@ -1,13 +1,10 @@
 package zeroformatter
 
-trait ZeroFormattable {
-
-  def length: Option[Int]
-}
-
-abstract class Formatter[T] extends ZeroFormattable { self =>
+abstract class Formatter[T] { self =>
 
   def default: T = null.asInstanceOf[T]
+
+  def length: Option[Int]
 
   def serialize(encoder: Encoder, offset: Int, value: T): Int
 
