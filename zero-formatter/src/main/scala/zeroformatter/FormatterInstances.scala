@@ -310,14 +310,9 @@ abstract class FormatterInstances1 extends FormatterInstances2 {
 
         val length = value.length
         encoder.ensureCapacity(offset, 4 + length)
-        var byteSize = encoder.writeIntUnsafe(offset, length)
+        val byteSize = encoder.writeIntUnsafe(offset, length)
 
-        var i = 0
-        while(i < length) {
-          byteSize += encoder.writeByteUnsafe(offset + byteSize, value(i))
-          i += 1
-        }
-        byteSize
+        byteSize + encoder.writeByteArrayUnsafe(offset + byteSize, value, 0, length)
       }
 
     override def deserialize(decoder: Decoder) = {
