@@ -7,19 +7,19 @@ Implementation of [ZeroFormatter](https://github.com/neuecc/ZeroFormatter) in Sc
 ## Latest stable version
 
 ```
-libraryDependencies += "com.github.pocketberserker" %% "zero-formatter" % "0.3.0"
+libraryDependencies += "com.github.pocketberserker" %% "zero-formatter" % "0.4.0"
 ```
 
 ```
-libraryDependencies += "com.github.pocketberserker" %% "zero-formatter-unsafe" % "0.3.0"
+libraryDependencies += "com.github.pocketberserker" %% "zero-formatter-unsafe" % "0.4.0"
 ```
 
 ```
-libraryDependencies += "com.github.pocketberserker" %% "zero-formatter-scalaz" % "0.3.0"
+libraryDependencies += "com.github.pocketberserker" %% "zero-formatter-scalaz" % "0.4.0"
 ```
 
 ```
-libraryDependencies += "com.github.pocketberserker" %% "zero-formatter-cats-core" % "0.3.0"
+libraryDependencies += "com.github.pocketberserker" %% "zero-formatter-cats-core" % "0.4.0"
 ```
 
 ## Usage
