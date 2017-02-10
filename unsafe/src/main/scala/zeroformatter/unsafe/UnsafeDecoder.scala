@@ -10,50 +10,39 @@ final case class UnsafeDecoder(buf: Array[Byte], private val _offset: Int) exten
   override val buffer = buf
 
   override def readByte(): Byte = {
+    val r = UnsafeUtil.getByte(buf, arrayBaseOffset + offset)
     offset += 1
-    UnsafeUtil.getByte(buf, arrayBaseOffset + offset - 1)
+    r
   }
 
   override def readByte(o: Int): Byte =
     UnsafeUtil.getByte(buf, arrayBaseOffset + o)
 
-  override def readShort(): Short = {
-    offset += 2
-    readShort(offset - 2)
-  }
-
   override def readShort(o: Int): Short =
     UnsafeUtil.getShort(buf, arrayBaseOffset + o)
 
-  override def readInt(): Int = {
-    offset += 4
-    readInt(offset - 4)
-  }
-
   override def readInt(o: Int): Int =
     UnsafeUtil.getInt(buf, arrayBaseOffset + o)
-
-  override def readLong(): Long = {
-    offset += 8
-    readLong(offset - 8)
-  }
 
   override def readLong(o: Int): Long =
     UnsafeUtil.getLong(buf, arrayBaseOffset + o)
 
   override def readFloat(): Float = {
+    val r = UnsafeUtil.getFloat(buf, arrayBaseOffset + offset)
     offset += 4
-    UnsafeUtil.getFloat(buf, arrayBaseOffset + offset - 4)
+    r
   }
 
   override def readDouble(): Double = {
+    val r = UnsafeUtil.getDouble(buf, arrayBaseOffset + offset)
     offset += 8
-    UnsafeUtil.getDouble(buf, arrayBaseOffset + offset - 8)
+    r
   }
 
   override def readChar(): Char = {
+    val r = UnsafeUtil.getChar(buf, arrayBaseOffset + offset)
     offset += 2
-    UnsafeUtil.getChar(buf, arrayBaseOffset + offset - 2)
+    r
   }
 
   override def newOffset(o: Int) = this.copy(_offset = o)

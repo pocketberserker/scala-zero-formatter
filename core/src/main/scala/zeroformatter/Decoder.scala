@@ -10,11 +10,23 @@ abstract class Decoder(var offset: Int) {
 
   def readByte(): Byte
   def readByte(offset: Int): Byte
-  def readShort(): Short
+  def readShort(): Short = {
+    val r = readShort(offset)
+    offset += 2
+    r
+  }
   def readShort(offset: Int): Short
-  def readInt(): Int
+  def readInt(): Int = {
+    val r = readInt(offset)
+    offset += 4
+    r
+  }
   def readInt(offset: Int): Int
-  def readLong(): Long
+  def readLong(): Long = {
+    val r = readLong(offset)
+    offset += 8
+    r
+  }
   def readLong(offset: Int): Long
   def readFloat(): Float
   def readDouble(): Double
@@ -44,26 +56,17 @@ final case class ArrayDecoder(buf: Array[Byte], private val _offset: Int) extend
   override val buffer = buf
 
   override def readByte(): Byte = {
+    val r = buf(offset)
     offset += 1
-    buf(offset - 1)
+    r
   }
 
   override def readByte(o: Int): Byte = buf(o)
-
-  override def readShort(): Short = {
-    offset += 2
-    readShort(offset - 2)
-  }
 
   override def readShort(o: Int): Short = {
     val v1 = (buf(o) & 0xff).asInstanceOf[Int]
     val v2 = buf(o + 1) << 8
     (v1 | v2).asInstanceOf[Short]
-  }
-
-  override def readInt(): Int = {
-    offset += 4
-    readInt(offset - 4)
   }
 
   override def readInt(o: Int): Int = {
@@ -72,11 +75,6 @@ final case class ArrayDecoder(buf: Array[Byte], private val _offset: Int) extend
     val v3 = (buf(o + 2) & 0xff) << 16
     val v4 = buf(o + 3) << 24
     v1 | v2 | v3 | v4
-  }
-
-  override def readLong(): Long = {
-    offset += 8
-    readLong(offset - 8)
   }
 
   override def readLong(o: Int): Long = {
@@ -90,9 +88,9 @@ final case class ArrayDecoder(buf: Array[Byte], private val _offset: Int) extend
     java.lang.Double.longBitsToDouble(readLong())
 
   override def readChar(): Char = {
+    val v1 = (buf(offset) & 0xff).asInstanceOf[Int]
+    val v2 = buf(offset + 1) << 8
     offset += 2
-    val v1 = (buf(offset - 2) & 0xff).asInstanceOf[Int]
-    val v2 = buf(offset - 1) << 8
     (v1 | v2).toChar
   }
 
@@ -115,46 +113,35 @@ final case class BufferDecoder(buf: ByteBuffer, private val _offset: Int) extend
   override val buffer = buf.array()
 
   override def readByte(): Byte = {
+    val r = buf.get(offset)
     offset += 1
-    buf.get(offset - 1)
+    r
   }
 
   override def readByte(o: Int): Byte = buf.get(o)
 
-  override def readShort(): Short = {
-    offset += 2
-    buf.getShort(offset - 2)
-  }
-
   override def readShort(o: Int): Short = buf.getShort(o)
 
-  override def readInt(): Int = {
-    offset += 4
-    buf.getInt(offset - 4)
-  }
-
   override def readInt(o: Int): Int = buf.getInt(o)
-
-  override def readLong(): Long = {
-    offset += 8
-    buf.getLong(offset - 8)
-  }
 
   override def readLong(o: Int): Long = buf.getLong(o)
 
   override def readFloat(): Float = {
+    val r = buf.getFloat(offset)
     offset += 4
-    buf.getFloat(offset - 4)
+    r
   }
 
   override def readDouble(): Double = {
+    val r = buf.getDouble(offset)
     offset += 8
-    buf.getDouble(offset - 8)
+    r
   }
 
   override def readChar(): Char = {
+    val r = buf.getChar(offset)
     offset += 2
-    buf.getChar(offset - 2)
+    r
   }
 
   override def newOffset(o: Int) = this.copy(_offset = o)
