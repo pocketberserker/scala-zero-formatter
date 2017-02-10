@@ -7,7 +7,7 @@ object ZeroFormatter {
     val encoder = UnsafeEncoder(new Array[Byte](F.length.getOrElse(0)))
     val byteSize = F.serialize(encoder, 0, value)
     val result = encoder.toByteArray
-    if(result.length != byteSize) BinaryUtil.resize(result, byteSize)
+    if(result.length != byteSize) UnsafeUtil.resize(result, byteSize)
     else result
   }
 
