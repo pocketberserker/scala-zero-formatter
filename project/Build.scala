@@ -66,7 +66,7 @@ object Build {
   lazy val scalaz = module("scalaz").settings(
     name := scalazName,
     libraryDependencies ++= Seq(
-      "org.scalaz" %%% "scalaz-core" % "7.2.8",
+      "org.scalaz" %%% "scalaz-core" % "7.2.10",
       "com.github.scalaprops" %%% "scalaprops-scalazlaws" % "0.3.4" % "test"
     )
   ).dependsOn(zeroFormatter % "test->test;compile->compile")
