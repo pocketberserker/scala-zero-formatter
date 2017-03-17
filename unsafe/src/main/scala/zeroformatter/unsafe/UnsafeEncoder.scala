@@ -107,6 +107,16 @@ final case class UnsafeEncoder(private var buf: Array[Byte]) extends Encoder {
     ensureCapacity(offset, len)
     writeByteArrayUnsafe(offset, value, start, len)
   }
+
+  override def writeString(offset: Int, value: String): Int =
+    if(value == null) writeInt(offset, -1)
+    else {
+      val len = Utf8.encodedLength(value)
+      ensureCapacity(offset, 4 + len)
+      val intSize = writeIntUnsafe(offset, len)
+      Utf8.encode(value, buf, offset + intSize, len)
+      intSize + len
+    }
 }
 
 private[unsafe] object UnsafeEncoder {
