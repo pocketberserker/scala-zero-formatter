@@ -47,7 +47,7 @@ object Accessor {
   }
 }
 
-class AccessorMacros(override val c: whitebox.Context) extends ObjectFormatterMacros(c) {
+class AccessorMacros(override val c: whitebox.Context) extends FormatterMacros(c) {
 
   import c.universe._
 

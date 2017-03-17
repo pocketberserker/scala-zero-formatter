@@ -1,23 +1,13 @@
 import Build._
 
 lazy val jvmProjects = Seq[ProjectReference](
-  zeroFormatterCoreJVM, zeroFormatterMacrosJVM, zeroFormatterJVM, scalazJVM, catsCoreJVM, unsafe, benchmark
+  zeroFormatterJVM, scalazJVM, catsCoreJVM, unsafe, benchmark
 )
 
 lazy val jsProjects = Seq[ProjectReference](
-  zeroFormatterCoreJS, zeroFormatterMacrosJS, zeroFormatterJS, scalazJS, catsCoreJS
+  zeroFormatterJS, scalazJS, catsCoreJS
 )
 
-lazy val benchmarkProjects = Seq[ProjectReference](
-  benchmark
-)
-
-lazy val zeroFormatterCoreJS = zeroFormatterCore.js
-lazy val zeroFormatterCoreJVM = zeroFormatterCore.jvm
-lazy val zeroFormatterCoreRoot = project.aggregate(zeroFormatterCoreJS, zeroFormatterCoreJVM)
-lazy val zeroFormatterMacrosJS = zeroFormatterMacros.js
-lazy val zeroFormatterMacrosJVM = zeroFormatterMacros.jvm
-lazy val zeroFormatterMacrosRoot = project.aggregate(zeroFormatterMacrosJS, zeroFormatterMacrosJVM)
 lazy val zeroFormatterJS = zeroFormatter.js
 lazy val zeroFormatterJVM = zeroFormatter.jvm
 lazy val zeroFormatterRoot = project.aggregate(zeroFormatterJS, zeroFormatterJVM)
@@ -40,7 +30,7 @@ val root = Project("root", file(".")).settings(
   name := allName,
   packagedArtifacts := Map.empty
 ).aggregate(
-  jvmProjects ++ jsProjects ++ benchmarkProjects : _*
+  jvmProjects ++ jsProjects : _*
 )
 
 lazy val benchmark = Project("benchmark", file("benchmark")).settings(

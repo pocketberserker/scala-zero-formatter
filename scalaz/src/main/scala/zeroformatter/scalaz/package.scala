@@ -8,13 +8,8 @@ package object scalaz {
     override def xmap[A, B](fa: Formatter[A], f: A => B, g: B => A) = fa.xmap(f, g)
   }
 
-  implicit def idFormatter[T](implicit F: Formatter[T]): Formatter[Id.Id[T]] = new Formatter[Id.Id[T]] {
-    override val length = F.length
-    override def serialize(encoder: Encoder, offset: Int, value: T) =
-      F.serialize(encoder, offset, value)
-    override def deserialize(decoder: Decoder) =
-      F.deserialize(decoder)
-  }
+  @inline
+  implicit def idFormatter[T](implicit F: Formatter[T]): Formatter[Id.Id[T]] = F
 
   implicit def maybeFormatter[T: Formatter]: Formatter[Maybe[T]] =
     Formatter[Option[T]].xmap(o => Maybe.fromOption(o), _.toOption)
@@ -55,6 +50,8 @@ package object scalaz {
     }
   }
 
-  implicit def eagerListFormatter[A: Formatter]: Formatter[LazyList[Id.Id, A]] =
-    LazyList.lazyListFormatter
+  implicit def eagerListFormatter[A](implicit
+    F: Formatter[A]
+  ): Formatter[LazyList[Id.Id, A]] =
+    LazyList.lazyListFormatter[Id.Id, A](F, F)
 }

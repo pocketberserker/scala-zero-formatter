@@ -4,27 +4,65 @@ import scala.language.experimental.macros
 import scala.reflect.macros.whitebox
 import shapeless.CaseClassMacros
 
-trait ObjectSerializer[A] {
-  def serialize(encoder: Encoder, offset: Int, value: A): Int
+abstract class Formatter[T] { self =>
+
+  def default: T = null.asInstanceOf[T]
+
+  def length: Option[Int]
+
+  def serialize(encoder: Encoder, offset: Int, value: T): Int
+
+  def deserialize(decoder: Decoder): T
+
+  def xmap[U](f: T => U, g: U => T): Formatter[U] = new Formatter[U] {
+    override def length = self.length
+    override def default = f(self.default)
+    override def serialize(encoder: Encoder, offset: Int, value: U) =
+      self.serialize(encoder, offset, g(value))
+    override def deserialize(decoder: Decoder) =
+      f(self.deserialize(decoder))
+  }
 }
 
-trait ObjectDeserializer[A] {
-  def deserialize(decoder: Decoder): A
+object Formatter extends FormatterInstances {
+
+  @inline
+  def apply[T](implicit F: Formatter[T]): Formatter[T] = F
+
+  def serializeObjectField[T](encoder: Encoder, offset: Int, byteSize: Int, value: T, indexOffset: Int)(implicit F: Formatter[T]): Int = {
+    val o = offset + byteSize
+    val r = F.serialize(encoder, o, value)
+    encoder.writeIntUnsafe(offset + indexOffset, o)
+    byteSize + r
+  }
+
+  def serializeStructField[T](encoder: Encoder, offset: Int, byteSize: Int, value: T)(implicit F: Formatter[T]): Int = {
+    byteSize + F.serialize(encoder, offset + byteSize, value)
+  }
+
+  def deserializeObjectField[T](decoder: Decoder, offset: Int, lastIndex: Int, index: Int, formatter: Formatter[T]): T =
+    if(index > lastIndex) formatter.default
+    else {
+      val o = decoder.readInt(offset + 4 + 4 + 4 * index)
+      if(o == 0) formatter.default
+      else {
+        decoder.offset = o
+        formatter.deserialize(decoder)
+      }
+    }
+
+  @inline
+  def deserializeStructField[T](decoder: Decoder, formatter: Formatter[T]): T =
+    formatter.deserialize(decoder)
+
+  implicit def structOptionFormatter[A <: Struct : Formatter]: Formatter[Option[A]] =
+    nullableFormatter[A]
+
+  implicit def materialize[A]: Formatter[A] =
+    macro FormatterMacros.materializeFormatter[A]
 }
 
-object ObjectSerializer {
-
-  implicit def materialize[A]: ObjectSerializer[A] =
-    macro ObjectFormatterMacros.materializeSerializer[A]
-}
-
-object ObjectDeserializer {
-
-  implicit def materialize[A]: ObjectDeserializer[A] =
-    macro ObjectFormatterMacros.materializeDeserializer[A]
-}
-
-class ObjectFormatterMacros(val c: whitebox.Context) extends CaseClassMacros {
+class FormatterMacros(val c: whitebox.Context) extends CaseClassMacros {
 
   import c.universe._
 
@@ -66,13 +104,16 @@ class ObjectFormatterMacros(val c: whitebox.Context) extends CaseClassMacros {
       }
   }
 
-  def materializeSerializer[A: c.WeakTypeTag]: Tree = {
+  def materializeFormatter[A: c.WeakTypeTag]: Tree = {
     val tpe = weakTypeOf[A]
-    val ObjectSerializer = symbolOf[ObjectSerializer[_]]
+    val ctorDtor = CtorDtor(tpe)
+    val Formatter = symbolOf[Formatter[_]]
     val Encoder = symbolOf[Encoder]
+    val Decoder = symbolOf[Decoder]
     val Struct = typeOf[Struct].typeSymbol
 
     if (markZeroFormattable(tpe)) {
+
       val serializeImpl =
         if(isProduct(tpe)) {
           val fields = fieldsOf(tpe)
@@ -117,25 +158,6 @@ class ObjectFormatterMacros(val c: whitebox.Context) extends CaseClassMacros {
         }
         else abort(s"$tpe is not case class")
 
-      q"""
-        new $ObjectSerializer[$tpe] {
-          override def serialize(encoder: $Encoder, offset: Int, value: $tpe) = {
-            $serializeImpl
-          }
-        }
-      """
-    }
-    else abort(s"$tpe requires to apply ZeroFormattable annotation")
-  }
-
-  def materializeDeserializer[A: c.WeakTypeTag]: Tree = {
-    val tpe = weakTypeOf[A]
-    val ctorDtor = CtorDtor(tpe)
-    val ObjectDeserializer = symbolOf[ObjectDeserializer[_]]
-    val Decoder = symbolOf[Decoder]
-    val Struct = typeOf[Struct].typeSymbol
-
-    if (markZeroFormattable(tpe)) {
       val deserializeImpl =
         if(isProduct(tpe)) {
           val fields = fieldsOf(tpe)
@@ -179,7 +201,11 @@ class ObjectFormatterMacros(val c: whitebox.Context) extends CaseClassMacros {
         else abort(s"$tpe is not case class")
 
       q"""
-        new $ObjectDeserializer[$tpe] {
+        new $Formatter[$tpe] {
+          override val length = _root_.scala.None
+          override def serialize(encoder: $Encoder, offset: Int, value: $tpe) = {
+            $serializeImpl
+          }
           override def deserialize(decoder: $Decoder) = {
             $deserializeImpl
           }
