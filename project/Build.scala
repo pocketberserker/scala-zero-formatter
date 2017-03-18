@@ -11,6 +11,7 @@ object Build {
   private[this] val scalazName = "zero-formatter-scalaz"
   private[this] val catsCoreName = "zero-formatter-cats-core"
   val unsafeName = "zero-formatter-unsafe"
+  val akkaHttpName = "akka-http-zero-formatter"
   val allName = "zero-formatter-all"
 
   private[this] def module(id: String) =
@@ -32,6 +33,7 @@ object Build {
     scalazName ::
     catsCoreName ::
     unsafeName ::
+    akkaHttpName ::
     Nil
   )
 

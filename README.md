@@ -22,6 +22,10 @@ libraryDependencies += "com.github.pocketberserker" %% "zero-formatter-scalaz" %
 libraryDependencies += "com.github.pocketberserker" %% "zero-formatter-cats-core" % "0.5.0"
 ```
 
+```
+libraryDependencies += "com.github.pocketberserker" %% "akka-http-zero-formatter" % "0.5.0"
+```
+
 ## Usage
 
 Define case class and fields mark as `@Index`, call `ZeroFormatter.serialize[T]/deserialize[T}`
