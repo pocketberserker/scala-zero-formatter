@@ -12,6 +12,7 @@ libraryDependencies += "com.github.pocketberserker" %% "zero-formatter" % "0.5.0
 ```
 
 ```
+// JVM only
 libraryDependencies += "com.github.pocketberserker" %% "zero-formatter-unsafe" % "0.5.0"
 ```
 
@@ -24,6 +25,7 @@ libraryDependencies += "com.github.pocketberserker" %% "zero-formatter-cats-core
 ```
 
 ```
+// JVM only
 libraryDependencies += "com.github.pocketberserker" %% "akka-http-zero-formatter" % "0.5.0"
 ```
 
