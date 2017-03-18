@@ -69,13 +69,8 @@ final case class ArrayDecoder(buf: Array[Byte], private val _offset: Int) extend
     (v1 | v2).asInstanceOf[Short]
   }
 
-  override def readInt(o: Int): Int = {
-    val v1 = (buf(o) & 0xff).asInstanceOf[Int]
-    val v2 = (buf(o + 1) & 0xff) << 8
-    val v3 = (buf(o + 2) & 0xff) << 16
-    val v4 = buf(o + 3) << 24
-    v1 | v2 | v3 | v4
-  }
+  override def readInt(o: Int): Int =
+    (buf(o) & 0xff) | ((buf(o + 1) & 0xff) << 8) | ((buf(o + 2) & 0xff) << 16) | (buf(o + 3) << 24)
 
   override def readLong(o: Int): Long = {
     (readInt(o).asInstanceOf[Long] & 0xffffffffL) | (readInt(o + 4).asInstanceOf[Long] << 32)
