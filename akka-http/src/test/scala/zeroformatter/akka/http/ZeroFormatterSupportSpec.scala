@@ -53,7 +53,7 @@ class ZeroFormatterSupportSpec extends AsyncWordSpec with Matchers with BeforeAn
   private implicit val system = ActorSystem()
   private implicit val mat    = ActorMaterializer()
 
-  "ArgonautSupport" should {
+  "ZeroFormatterSupport" should {
     import system.dispatcher
 
     "enable marshalling and unmarshalling objects for generic derivation" in {
