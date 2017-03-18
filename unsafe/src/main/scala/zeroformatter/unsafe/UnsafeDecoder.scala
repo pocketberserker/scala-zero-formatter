@@ -59,7 +59,7 @@ final case class UnsafeDecoder(buf: Array[Byte], private val _offset: Int) exten
   }
 }
 
-private[unsafe] object UnsafeDecoder {
+object UnsafeDecoder {
 
   private[unsafe] val arrayBaseOffset: Long = UnsafeUtil.getArrayBaseOffset()
 }

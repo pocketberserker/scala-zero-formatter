@@ -29,6 +29,11 @@ libraryDependencies += "com.github.pocketberserker" %% "zero-formatter-cats-core
 libraryDependencies += "com.github.pocketberserker" %% "akka-http-zero-formatter" % "0.6.0"
 ```
 
+```
+// JVM only
+libraryDependencies += "com.github.pocketberserker" %% "zero-formatter-lz4" % "0.6.0"
+```
+
 ## Usage
 
 Define case class and fields mark as `@Index`, call `ZeroFormatter.serialize[T]/deserialize[T}`
@@ -143,3 +148,4 @@ see also [WireFormat Specification](https://github.com/neuecc/ZeroFormatter/tree
 | Scala | C# | Note |
 | ---- | ---- | --- |
 | `Union` | Union | |
+

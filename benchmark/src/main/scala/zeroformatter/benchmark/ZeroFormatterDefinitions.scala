@@ -20,12 +20,17 @@ trait ZeroFormatterData { self: ExampleData =>
   @inline def unsafeEncodeZ[A](a: A)(implicit F: Formatter[A]): Array[Byte] =
     unsafe.ZeroFormatter.serialize(a)
 
+  @inline def lz4EncodeZ[A](a: A)(implicit F: Formatter[A]): Array[Byte] =
+    lz4.ZeroFormatter.serialize(a)
+
   val foosZ: Array[Byte] = encodeZ(foos)
+  val lz4FoosZ: Array[Byte] = lz4EncodeZ(foos)
   val cachedFoos: Map[String, Accessor[Foo]] =
     foos.mapValues(f => Accessor(f, Some(foosZ)))
   val barsZ: Array[Byte] = encodeZ(bars)
   val listIntsZ: Array[Byte] = encodeZ(listInts)
   val vecIntsZ: Array[Byte] = encodeZ(vecInts)
+  val lz4VecIntsZ: Array[Byte] = lz4EncodeZ(vecInts)
 }
 
 trait ZeroFormatterEncoding { self: ExampleData =>
@@ -37,6 +42,9 @@ trait ZeroFormatterEncoding { self: ExampleData =>
 
   @Benchmark
   def encodeCachedFoosZ: Array[Byte] = encodeZ(cachedFoos)
+
+  @Benchmark
+  def lz4EncodeFoosZ: Array[Byte] = lz4EncodeZ(foos)
 
   @Benchmark
   def encodeBarsZ: Array[Byte] = encodeZ(bars)
@@ -52,6 +60,9 @@ trait ZeroFormatterEncoding { self: ExampleData =>
 
   @Benchmark
   def unsafeEncodeVectorIntsZ: Array[Byte] = unsafeEncodeZ(vecInts)
+
+  @Benchmark
+  def lz4EncodeVectorIntsZ: Array[Byte] = lz4EncodeZ(vecInts)
 }
 
 trait ZeroFormatterDecoding { self: ExampleData =>
@@ -61,6 +72,10 @@ trait ZeroFormatterDecoding { self: ExampleData =>
   @Benchmark
   def unsafeDecodeFoosZ: Map[String, Foo] =
     unsafe.ZeroFormatter.deserialize[Map[String, Foo]](foosZ)
+
+  @Benchmark
+  def lz4DecodeFoosZ: Map[String, Foo] =
+    lz4.ZeroFormatter.deserialize[Map[String, Foo]](lz4FoosZ)
 
   @Benchmark
   def decodeBarsZ: Map[String, Bar] = ZeroFormatter.deserialize[Map[String, Bar]](barsZ)
@@ -78,4 +93,8 @@ trait ZeroFormatterDecoding { self: ExampleData =>
   @Benchmark
   def unsafeDecodeVectorIntsZ: Vector[Int] =
     unsafe.ZeroFormatter.deserialize[Vector[Int]](vecIntsZ)
+
+  @Benchmark
+  def lz4DecodeVectorIntsZ: Vector[Int] =
+    lz4.ZeroFormatter.deserialize[Vector[Int]](lz4VecIntsZ)
 }

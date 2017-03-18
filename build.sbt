@@ -1,7 +1,7 @@
 import Build._
 
 lazy val jvmProjects = Seq[ProjectReference](
-  zeroFormatterJVM, scalazJVM, catsCoreJVM, unsafe, akkaHttp, benchmark
+  zeroFormatterJVM, scalazJVM, catsCoreJVM, unsafe, akkaHttp, lz4, benchmark
 )
 
 lazy val jsProjects = Seq[ProjectReference](
@@ -34,6 +34,15 @@ lazy val akkaHttp = Project("akka-http", file("akka-http")).settings(
   )
 ).dependsOn(zeroFormatterJVM, unsafe)
 
+lazy val lz4 = Project("lz4", file("lz4")).settings(
+  Common.commonSettings
+).settings(
+  name := lz4Name,
+  libraryDependencies ++= Seq(
+    "net.jpountz.lz4" % "lz4" % "1.3.0"
+  )
+).dependsOn(zeroFormatterJVM % "compile->compile;test->test", unsafe)
+
 val root = Project("root", file(".")).settings(
   Common.commonSettings
 ).settings(
@@ -50,7 +59,12 @@ lazy val benchmark = Project("benchmark", file("benchmark")).settings(
   publishArtifact := false,
   publish := {},
   publishLocal := {}
-).enablePlugins(JmhPlugin).dependsOn(catsCoreJVM, zeroFormatterJVM % "test->test", unsafe)
+).dependsOn(
+  catsCoreJVM,
+  zeroFormatterJVM % "test->test",
+  unsafe,
+  lz4
+).enablePlugins(JmhPlugin)
 
 lazy val rootJS = project.aggregate(jsProjects: _*)
 lazy val rootJVM = project.aggregate(jvmProjects: _*)

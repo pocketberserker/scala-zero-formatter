@@ -119,7 +119,7 @@ final case class UnsafeEncoder(private var buf: Array[Byte]) extends Encoder {
     }
 }
 
-private[unsafe] object UnsafeEncoder {
+object UnsafeEncoder {
 
   private[unsafe] val arrayBaseOffset: Long = UnsafeUtil.getArrayBaseOffset()
 }
