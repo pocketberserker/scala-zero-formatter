@@ -1,6 +1,7 @@
 # scala-zero-formatter
 
 [![Build Status](https://travis-ci.org/pocketberserker/scala-zero-formatter.svg?branch=master)](https://travis-ci.org/pocketberserker/scala-zero-formatter)
+[![Scala.js](https://www.scala-js.org/assets/badges/scalajs-0.6.14.svg)](https://www.scala-js.org)
 
 Implementation of [ZeroFormatter](https://github.com/neuecc/ZeroFormatter) in Scala.
 
