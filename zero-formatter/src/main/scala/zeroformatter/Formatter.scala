@@ -29,6 +29,11 @@ object Formatter extends FormatterInstances {
   @inline
   def apply[T](implicit F: Formatter[T]): Formatter[T] = F
 
+  def appendLength[T](l: Option[Int])(implicit F: Formatter[T]): Option[Int] = (l, F.length) match {
+    case (Some(l1), Some(l2)) => Some(l1 + l2)
+    case _ => None
+  }
+
   def serializeObjectField[T](encoder: Encoder, offset: Int, byteSize: Int, value: T, indexOffset: Int)(implicit F: Formatter[T]): Int = {
     val o = offset + byteSize
     val r = F.serialize(encoder, o, value)
@@ -36,9 +41,8 @@ object Formatter extends FormatterInstances {
     byteSize + r
   }
 
-  def serializeStructField[T](encoder: Encoder, offset: Int, byteSize: Int, value: T)(implicit F: Formatter[T]): Int = {
+  def serializeStructField[T](encoder: Encoder, offset: Int, byteSize: Int, value: T)(implicit F: Formatter[T]): Int =
     byteSize + F.serialize(encoder, offset + byteSize, value)
-  }
 
   def deserializeObjectField[T](decoder: Decoder, offset: Int, lastIndex: Int, index: Int, formatter: Formatter[T]): T =
     if(index > lastIndex) formatter.default
@@ -104,6 +108,11 @@ class FormatterMacros(val c: whitebox.Context) extends CaseClassMacros {
       }
   }
 
+  private[this] def length(init: Tree, fields: List[(TermName, Type)]): Tree =
+    fields.foldLeft(init){ case (a, (_, t)) =>
+      q"_root_.zeroformatter.Formatter.appendLength[$t]($a)"
+    }
+
   def materializeFormatter[A: c.WeakTypeTag]: Tree = {
     val tpe = weakTypeOf[A]
     val ctorDtor = CtorDtor(tpe)
@@ -113,11 +122,19 @@ class FormatterMacros(val c: whitebox.Context) extends CaseClassMacros {
     val Struct = typeOf[Struct].typeSymbol
 
     if (markZeroFormattable(tpe)) {
+      if(isProduct(tpe)) {
+        val fields = fieldsOf(tpe)
+        val indexes = getIndexes(tpe, fields)
 
-      val serializeImpl =
-        if(isProduct(tpe)) {
-          val fields = fieldsOf(tpe)
-          val indexes = getIndexes(tpe, fields)
+        val lengthImpl =
+          if(tpe.baseClasses.contains(Struct)) length(q"_root_.scala.Some(0)", fields)
+          else if(indexes.nonEmpty) {
+            val lastIndex = indexes.map(_._2).reduce(_ max _)
+            length(q"_root_.scala.Some(${8 + (lastIndex + 1) * 4})", fields)
+          }
+          else q"_root_.scala.Some(12)"
+
+        val serializeImpl =
           if(tpe.baseClasses.contains(Struct)) {
             val acc: Tree = q"0"
             fields.map { case (name, _) => name.decodedName.toString }
@@ -155,18 +172,12 @@ class FormatterMacros(val c: whitebox.Context) extends CaseClassMacros {
               }
             """
           }
-        }
-        else abort(s"$tpe is not case class")
 
-      val deserializeImpl =
-        if(isProduct(tpe)) {
-          val fields = fieldsOf(tpe)
-          val indexes = getIndexes(tpe, fields)
+        val deserializeImpl =
           if(tpe.baseClasses.contains(Struct)) {
-            val r = fieldsOf(tpe).map { case (_, t) => t }
-              .foldLeft(List[Tree]()){ case (a, t) =>
-                q"_root_.zeroformatter.Formatter.deserializeStructField(decoder, _root_.zeroformatter.Formatter[$t])" :: a
-              }
+            val r = fields.foldLeft(List[Tree]()){ case (a, (_, t)) =>
+              q"_root_.zeroformatter.Formatter.deserializeStructField(decoder, _root_.zeroformatter.Formatter[$t])" :: a
+            }
             q"${ctorDtor.construct(r.reverse)}"
           }
           else if(indexes.nonEmpty) {
@@ -197,20 +208,20 @@ class FormatterMacros(val c: whitebox.Context) extends CaseClassMacros {
               }
             """
           }
-        }
-        else abort(s"$tpe is not case class")
 
-      q"""
-        new $Formatter[$tpe] {
-          override val length = _root_.scala.None
-          override def serialize(encoder: $Encoder, offset: Int, value: $tpe) = {
-            $serializeImpl
+        q"""
+          new $Formatter[$tpe] {
+            override val length = $lengthImpl
+            override def serialize(encoder: $Encoder, offset: Int, value: $tpe) = {
+              $serializeImpl
+            }
+            override def deserialize(decoder: $Decoder) = {
+              $deserializeImpl
+            }
           }
-          override def deserialize(decoder: $Decoder) = {
-            $deserializeImpl
-          }
-        }
-      """
+        """
+      }
+      else abort(s"$tpe is not case class")
     }
     else abort(s"$tpe requires to apply ZeroFormattable annotation")
   }
