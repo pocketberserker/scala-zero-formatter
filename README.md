@@ -8,25 +8,25 @@ Implementation of [ZeroFormatter](https://github.com/neuecc/ZeroFormatter) in Sc
 ## Latest stable version
 
 ```
-libraryDependencies += "com.github.pocketberserker" %% "zero-formatter" % "0.5.0"
+libraryDependencies += "com.github.pocketberserker" %% "zero-formatter" % "0.6.0"
 ```
 
 ```
 // JVM only
-libraryDependencies += "com.github.pocketberserker" %% "zero-formatter-unsafe" % "0.5.0"
+libraryDependencies += "com.github.pocketberserker" %% "zero-formatter-unsafe" % "0.6.0"
 ```
 
 ```
-libraryDependencies += "com.github.pocketberserker" %% "zero-formatter-scalaz" % "0.5.0"
+libraryDependencies += "com.github.pocketberserker" %% "zero-formatter-scalaz" % "0.6.0"
 ```
 
 ```
-libraryDependencies += "com.github.pocketberserker" %% "zero-formatter-cats-core" % "0.5.0"
+libraryDependencies += "com.github.pocketberserker" %% "zero-formatter-cats-core" % "0.6.0"
 ```
 
 ```
 // JVM only
-libraryDependencies += "com.github.pocketberserker" %% "akka-http-zero-formatter" % "0.5.0"
+libraryDependencies += "com.github.pocketberserker" %% "akka-http-zero-formatter" % "0.6.0"
 ```
 
 ## Usage
