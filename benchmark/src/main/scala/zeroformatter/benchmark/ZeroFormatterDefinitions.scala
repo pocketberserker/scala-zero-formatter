@@ -23,14 +23,19 @@ trait ZeroFormatterData { self: ExampleData =>
   @inline def lz4EncodeZ[A](a: A)(implicit F: Formatter[A]): Array[Byte] =
     lz4.ZeroFormatter.serialize(a)
 
+  @inline def zstdEncodeZ[A](a: A)(implicit F: Formatter[A]): Array[Byte] =
+    zstd.ZeroFormatter.serialize(a)
+
   val foosZ: Array[Byte] = encodeZ(foos)
   val lz4FoosZ: Array[Byte] = lz4EncodeZ(foos)
+  val zstdFoosZ: Array[Byte] = zstdEncodeZ(foos)
   val cachedFoos: Map[String, Accessor[Foo]] =
     foos.mapValues(f => Accessor(f, Some(foosZ)))
   val barsZ: Array[Byte] = encodeZ(bars)
   val listIntsZ: Array[Byte] = encodeZ(listInts)
   val vecIntsZ: Array[Byte] = encodeZ(vecInts)
   val lz4VecIntsZ: Array[Byte] = lz4EncodeZ(vecInts)
+  val zstdVecIntsZ: Array[Byte] = zstdEncodeZ(vecInts)
 }
 
 trait ZeroFormatterEncoding { self: ExampleData =>
@@ -45,6 +50,9 @@ trait ZeroFormatterEncoding { self: ExampleData =>
 
   @Benchmark
   def lz4EncodeFoosZ: Array[Byte] = lz4EncodeZ(foos)
+
+  @Benchmark
+  def zstdEncodeFoosZ: Array[Byte] = zstdEncodeZ(foos)
 
   @Benchmark
   def encodeBarsZ: Array[Byte] = encodeZ(bars)
@@ -63,6 +71,9 @@ trait ZeroFormatterEncoding { self: ExampleData =>
 
   @Benchmark
   def lz4EncodeVectorIntsZ: Array[Byte] = lz4EncodeZ(vecInts)
+
+  @Benchmark
+  def zstdEncodeVectorIntsZ: Array[Byte] = zstdEncodeZ(vecInts)
 }
 
 trait ZeroFormatterDecoding { self: ExampleData =>
@@ -76,6 +87,10 @@ trait ZeroFormatterDecoding { self: ExampleData =>
   @Benchmark
   def lz4DecodeFoosZ: Map[String, Foo] =
     lz4.ZeroFormatter.deserialize[Map[String, Foo]](lz4FoosZ)
+
+  @Benchmark
+  def zstdDecodeFoosZ: Map[String, Foo] =
+    zstd.ZeroFormatter.deserialize[Map[String, Foo]](zstdFoosZ)
 
   @Benchmark
   def decodeBarsZ: Map[String, Bar] = ZeroFormatter.deserialize[Map[String, Bar]](barsZ)
@@ -97,4 +112,8 @@ trait ZeroFormatterDecoding { self: ExampleData =>
   @Benchmark
   def lz4DecodeVectorIntsZ: Vector[Int] =
     lz4.ZeroFormatter.deserialize[Vector[Int]](lz4VecIntsZ)
+
+  @Benchmark
+  def zstdDecodeVectorIntsZ: Vector[Int] =
+    zstd.ZeroFormatter.deserialize[Vector[Int]](zstdVecIntsZ)
 }

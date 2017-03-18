@@ -1,7 +1,7 @@
 import Build._
 
 lazy val jvmProjects = Seq[ProjectReference](
-  zeroFormatterJVM, scalazJVM, catsCoreJVM, unsafe, akkaHttp, lz4, benchmark
+  zeroFormatterJVM, scalazJVM, catsCoreJVM, unsafe, akkaHttp, lz4, zstd, benchmark
 )
 
 lazy val jsProjects = Seq[ProjectReference](
@@ -43,6 +43,15 @@ lazy val lz4 = Project("lz4", file("lz4")).settings(
   )
 ).dependsOn(zeroFormatterJVM % "compile->compile;test->test", unsafe)
 
+lazy val zstd = Project("zstd", file("zstd")).settings(
+  Common.commonSettings
+).settings(
+  name := zstdName,
+  libraryDependencies ++= Seq(
+    "com.github.luben" % "zstd-jni" % "1.1.4"
+  )
+).dependsOn(zeroFormatterJVM % "compile->compile;test->test", unsafe)
+
 val root = Project("root", file(".")).settings(
   Common.commonSettings
 ).settings(
@@ -63,7 +72,8 @@ lazy val benchmark = Project("benchmark", file("benchmark")).settings(
   catsCoreJVM,
   zeroFormatterJVM % "test->test",
   unsafe,
-  lz4
+  lz4,
+  zstd
 ).enablePlugins(JmhPlugin)
 
 lazy val rootJS = project.aggregate(jsProjects: _*)

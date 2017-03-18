@@ -5,6 +5,10 @@ final case class UnsafeEncoder(private var buf: Array[Byte]) extends Encoder {
 
   import UnsafeEncoder._
 
+  def resize(size: Int): Unit = {
+    buf = UnsafeUtil.resize(buf, size)
+  }
+
   override def ensureCapacity(offset: Int, appendLength: Int): Unit = {
     buf = UnsafeUtil.ensureCapacity(buf, offset, appendLength)
   }
