@@ -3,7 +3,7 @@ addSbtPlugin("com.github.gseitz" % "sbt-release" % "1.0.4")
 addSbtPlugin("org.xerial.sbt" % "sbt-sonatype" % "1.1")
 addSbtPlugin("org.scala-js" % "sbt-scalajs" % "0.6.14")
 addSbtPlugin("com.github.pocketberserker" % "sbt-dog" % "0.1.1")
-addSbtPlugin("pl.project13.scala" % "sbt-jmh" % "0.2.20")
+addSbtPlugin("pl.project13.scala" % "sbt-jmh" % "0.2.21")
 
 scalacOptions ++= (
   "-deprecation" ::
