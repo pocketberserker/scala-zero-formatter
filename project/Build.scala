@@ -59,7 +59,7 @@ object Build {
   lazy val zeroFormatter = module(zeroFormatterName).settings(
     name := zeroFormatterName,
     libraryDependencies ++= Seq(
-      "org.typelevel" %%% "spire" % "0.14.0",
+      "org.typelevel" %%% "spire" % "0.14.1",
       "com.chuusai" %%% "shapeless" % "2.3.2",
       "com.github.pocketberserker" %%% "dog" % dogVersion % "test",
       "com.github.pocketberserker" %%% "dog-props" % dogVersion % "test"
