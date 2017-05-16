@@ -48,7 +48,7 @@ lazy val zstd = Project("zstd", file("zstd")).settings(
 ).settings(
   name := zstdName,
   libraryDependencies ++= Seq(
-    "com.github.luben" % "zstd-jni" % "1.1.4"
+    "com.github.luben" % "zstd-jni" % "1.2.0"
   )
 ).dependsOn(zeroFormatterJVM % "compile->compile;test->test", unsafe)
 
