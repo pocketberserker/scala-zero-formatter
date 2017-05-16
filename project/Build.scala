@@ -20,8 +20,7 @@ object Build {
     CrossProject(id, file(id), CustomCrossType).settings(
       commonSettings
     ).settings(
-      scalaJSStage in Test := FastOptStage,
-      jsEnv := NodeJSEnv().value
+      scalaJSStage in Test := FastOptStage
     ).jsSettings(
       scalacOptions += {
         val a = (baseDirectory in LocalRootProject).value.toURI.toString
