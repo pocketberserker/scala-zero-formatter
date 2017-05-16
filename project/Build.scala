@@ -53,7 +53,7 @@ object Build {
       Some(shared(projectBase, conf))
   }
 
-  private[this] val dogVersion = "0.7.0"
+  private[this] val dogVersion = "0.8.0"
   private[this] val catsVersion = "0.9.0"
 
   lazy val zeroFormatter = module(zeroFormatterName).settings(
@@ -71,8 +71,8 @@ object Build {
   lazy val scalaz = module("scalaz").settings(
     name := scalazName,
     libraryDependencies ++= Seq(
-      "org.scalaz" %%% "scalaz-core" % "7.2.10",
-      "com.github.scalaprops" %%% "scalaprops-scalazlaws" % "0.3.4" % "test"
+      "org.scalaz" %%% "scalaz-core" % "7.2.12",
+      "com.github.scalaprops" %%% "scalaprops-scalazlaws" % "0.4.2" % "test"
     )
   ).dependsOn(zeroFormatter % "test->test;compile->compile")
 
