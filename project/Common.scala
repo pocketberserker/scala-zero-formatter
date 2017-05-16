@@ -37,14 +37,14 @@ object Common {
     "-language:reflectiveCalls"
   )
 
-  private[this] val scala211 = "2.11.8"
+  private[this] val scala211 = "2.11.11"
 
   lazy val commonSettings = Seq(
     sonatypeSettings,
     dogCoreSettings
   ).flatten ++ Seq(
     scalaVersion := scala211,
-    crossScalaVersions := Seq(scala211, "2.12.1"),
+    crossScalaVersions := Seq(scala211, "2.12.2"),
     resolvers += Opts.resolver.sonatypeReleases,
     scalacOptions ++= compilerOptions ++ unusedWarnings,
     releaseTagName := tagName.value,
